@@ -9,7 +9,12 @@ export default authkitProxy({
   redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
   middlewareAuth: {
     enabled: true,
-    unauthenticatedPaths: ['/auth/login', '/auth/error'],
+    // /auth/error must be unauthenticated so users can see the error page.
+    // /auth/login is intentionally NOT listed here — the proxy handles all
+    // redirects to WorkOS directly (generating PKCE itself). Having a separate
+    // /auth/login Route Handler also generating PKCE would overwrite the proxy's
+    // PKCE cookie and cause 'OAuth state mismatch' on the callback.
+    unauthenticatedPaths: ['/auth/error'],
   },
 })
 
