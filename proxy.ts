@@ -1,7 +1,15 @@
 import { authkitProxy } from '@workos-inc/authkit-nextjs'
 
+// middlewareAuth.enabled = true moves all session validation and refresh into
+// the proxy context, where cookies.set() is permitted in Next.js 16.
+// Without this, withAuth() in a Server Component triggers a cookie write during
+// page rendering, which Next.js 16 forbids (digest: 432911483).
 export default authkitProxy({
-  redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+  middlewareAuth: {
+    enabled: true,
+    // Pages that are accessible without being signed in
+    unauthenticatedPaths: ['/auth/login', '/auth/error'],
+  },
 })
 
 export const config = {
