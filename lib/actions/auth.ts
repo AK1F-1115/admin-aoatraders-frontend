@@ -14,6 +14,6 @@ import { cookies } from 'next/headers'
 export async function signOut() {
   const cookieStore = await cookies()
   cookieStore.delete('aoa_admin_token')
-  // WorkOS signOut handles the redirect — no return value needed
-  await workosSignOut()
+  // returnTo tells WorkOS where to redirect after clearing its session cookie
+  await workosSignOut({ returnTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/login` })
 }
