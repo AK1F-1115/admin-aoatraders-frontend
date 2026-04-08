@@ -27,9 +27,15 @@ export const GET = handleAuth({
     })
 
     if (!res.ok) {
-      const body = await res.json().catch(() => ({ detail: 'Authentication failed' }))
-      const reason = (body as { detail?: string }).detail ?? 'Authentication failed'
-      // Throwing from onSuccess causes handleAuth to call onError
+      const text = await res.text().catch(() => '')
+      let reason: string
+      try {
+        const body = JSON.parse(text)
+        reason = body.detail ?? body.message ?? `HTTP ${res.status}`
+      } catch {
+        reason = text || `HTTP ${res.status}`
+      }
+      console.error(`[auth/callback] exchange failed: ${res.status} — ${reason}`)
       throw new Error(reason)
     }
 
