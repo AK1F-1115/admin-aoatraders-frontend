@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 
 # vercel
@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Markdown documentation (internal use — not for repo)
+*.md
+
+# Internal agent instruction and workflow files
+,github/
+
+# Temp / scratch files
+*.tmp
+*.temp
+tmp/
+temp/
+scratch/
