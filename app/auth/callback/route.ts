@@ -29,13 +29,22 @@ export const GET = handleAuth({
     if (!res.ok) {
       const text = await res.text().catch(() => '')
       let reason: string
-      try {
-        const body = JSON.parse(text)
-        reason = body.detail ?? body.message ?? `HTTP ${res.status}`
-      } catch {
-        reason = text || `HTTP ${res.status}`
+
+      // Cloudflare Bot Protection returns a managed-challenge HTML page instead of JSON.
+      // Detect it and emit a clean error — raw HTML would crash decodeURIComponent on /auth/error.
+      if (text.includes('_cf_chl_opt') || text.includes('Just a moment')) {
+        reason = 'The backend API is currently protected by a firewall challenge and cannot be reached from the server. Please contact the AOA operations team to whitelist server-to-server requests.'
+        console.error(`[auth/callback] exchange blocked by Cloudflare challenge (status ${res.status})`)
+      } else {
+        try {
+          const body = JSON.parse(text)
+          reason = body.detail ?? body.message ?? `HTTP ${res.status}`
+        } catch {
+          reason = text || `HTTP ${res.status}`
+        }
+        console.error(`[auth/callback] exchange failed: ${res.status} — ${reason}`)
       }
-      console.error(`[auth/callback] exchange failed: ${res.status} — ${reason}`)
+
       throw new Error(reason)
     }
 

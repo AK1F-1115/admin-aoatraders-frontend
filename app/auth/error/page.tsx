@@ -16,7 +16,15 @@ export default async function AuthErrorPage({
   searchParams: Promise<{ reason?: string }>
 }) {
   const { reason } = await searchParams
-  const message = reason ? decodeURIComponent(reason) : 'An unexpected error occurred during sign-in.'
+  let message = 'An unexpected error occurred during sign-in.'
+  if (reason) {
+    try {
+      message = decodeURIComponent(reason)
+    } catch {
+      // reason param was malformed (e.g. raw HTML accidentally URL-encoded) — use fallback
+      message = 'An unexpected error occurred during sign-in.'
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
