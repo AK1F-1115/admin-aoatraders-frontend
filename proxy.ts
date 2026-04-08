@@ -1,13 +1,14 @@
 import { authkitProxy } from '@workos-inc/authkit-nextjs'
 
-// middlewareAuth.enabled = true moves all session validation and refresh into
-// the proxy context, where cookies.set() is permitted in Next.js 16.
-// Without this, withAuth() in a Server Component triggers a cookie write during
-// page rendering, which Next.js 16 forbids (digest: 432911483).
+// redirectUri is passed explicitly using NEXT_PUBLIC_APP_URL to avoid relying on
+// NEXT_PUBLIC_WORKOS_REDIRECT_URI. Without an explicit redirectUri, the library
+// defaults to '' (empty string), causing WorkOS to reject the authorization request
+// and redirect back with ?error=... instead of ?code=..., which surfaces as
+// "Missing required auth parameter" in the callback route.
 export default authkitProxy({
+  redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
   middlewareAuth: {
     enabled: true,
-    // Pages that are accessible without being signed in
     unauthenticatedPaths: ['/auth/login', '/auth/error'],
   },
 })
