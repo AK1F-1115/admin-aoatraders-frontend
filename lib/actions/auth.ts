@@ -45,6 +45,8 @@ export async function signOut() {
   // 3. Terminate the WorkOS session.
   //    workosSignOut reads wos-session, calls the WorkOS logout endpoint,
   //    clears the session cookie, and redirects to returnTo.
-  //    returnTo must be a URL registered in WorkOS dashboard (App Homepage URL).
-  await workosSignOut({ returnTo: process.env.NEXT_PUBLIC_APP_URL })
+  //    We point returnTo at /auth/signed-out (an unauthenticated page) so the
+  //    browser lands on a neutral page instead of the protected root, which
+  //    would immediately trigger a new PKCE auth flow and risk state mismatch.
+  await workosSignOut({ returnTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/signed-out` })
 }
