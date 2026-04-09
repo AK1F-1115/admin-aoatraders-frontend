@@ -35,7 +35,7 @@ export default async function AuthErrorPage({
           If you believe this is an error, contact the AOA operations team.
         </p>
         <a
-          href="/"
+          href="/auth/reset"
           className="mt-6 inline-block rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 transition-colors"
         >
           Try signing in again
