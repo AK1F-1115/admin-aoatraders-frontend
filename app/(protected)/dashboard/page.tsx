@@ -6,7 +6,7 @@
  */
 import { redirect } from 'next/navigation'
 import { Building2, DollarSign, ShoppingCart, Package } from 'lucide-react'
-import { apiRequest, rethrowFatalErrors } from '@/lib/api'
+import { apiRequest, UnauthorizedError } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
 import type { AnalyticsSummary } from '@/types/analytics.types'
 import type { SyncStatusResponse } from '@/types/sync.types'
@@ -25,18 +25,10 @@ export default async function DashboardPage() {
     apiRequest<PaginatedResponse<Order>>('/admin/orders?per_page=5&sort=created_at:desc'),
   ])
 
-  // Re-throw fatal errors (UnauthorizedError, Next.js redirect) that must not be swallowed
-  for (const result of [summaryResult, syncResult, ordersResult]) {
-    if (result.status === 'rejected') {
-      rethrowFatalErrors(result.reason)
-    }
-  }
-
-  // If any request was a 401 the loop above already threw — safe to redirect here
-  // as a belt-and-suspenders fallback
+  // If any API call returned 401, boot to login
   if (
     [summaryResult, syncResult, ordersResult].some(
-      (r) => r.status === 'rejected' && r.reason?.name === 'UnauthorizedError',
+      (r) => r.status === 'rejected' && r.reason instanceof UnauthorizedError,
     )
   ) {
     redirect('/auth/login')

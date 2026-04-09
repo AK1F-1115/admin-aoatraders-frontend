@@ -1,28 +1,16 @@
 import { cookies } from 'next/headers'
-import { isRedirectError } from 'next/dist/client/components/redirect-error'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.aoatraders.com'
 
 /**
  * Typed sentinel thrown when the backend returns 401.
- * Callers that wrap apiRequest in Promise.allSettled must re-throw this
- * so the Next.js redirect() can propagate correctly.
+ * Callers using Promise.allSettled should check for this and call redirect() themselves.
  */
 export class UnauthorizedError extends Error {
   constructor() {
     super('Unauthorized')
     this.name = 'UnauthorizedError'
   }
-}
-
-/**
- * Re-throw any error that must not be swallowed (Next.js redirect / notFound internals
- * and our own UnauthorizedError). Call this in the catch/rejected branch of
- * Promise.allSettled to ensure redirects always propagate.
- */
-export function rethrowFatalErrors(err: unknown): void {
-  if (isRedirectError(err)) throw err
-  if (err instanceof UnauthorizedError) throw err
 }
 
 /**
