@@ -59,7 +59,7 @@ export default function SyncHealthPanel({
 
       {/* Sync rows */}
       <div className="divide-y">
-        {syncStatus == null ? (
+        {!syncStatus?.syncs ? (
           <p className="px-6 py-4 text-sm text-muted-foreground">Sync status unavailable.</p>
         ) : syncStatus.syncs.length === 0 ? (
           <p className="px-6 py-4 text-sm text-muted-foreground">No sync runs recorded yet.</p>
