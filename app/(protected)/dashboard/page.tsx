@@ -4,8 +4,9 @@
  * Server Component: fetches analytics summary, sync status, and recent orders
  * in parallel. Each fetch is individually fault-tolerant via Promise.allSettled.
  */
+import { redirect } from 'next/navigation'
 import { Building2, DollarSign, ShoppingCart, Package } from 'lucide-react'
-import { apiRequest } from '@/lib/api'
+import { apiRequest, rethrowFatalErrors } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
 import type { AnalyticsSummary } from '@/types/analytics.types'
 import type { SyncStatusResponse } from '@/types/sync.types'
@@ -23,6 +24,23 @@ export default async function DashboardPage() {
     apiRequest<SyncStatusResponse>('/admin/sync/status'),
     apiRequest<PaginatedResponse<Order>>('/admin/orders?per_page=5&sort=created_at:desc'),
   ])
+
+  // Re-throw fatal errors (UnauthorizedError, Next.js redirect) that must not be swallowed
+  for (const result of [summaryResult, syncResult, ordersResult]) {
+    if (result.status === 'rejected') {
+      rethrowFatalErrors(result.reason)
+    }
+  }
+
+  // If any request was a 401 the loop above already threw — safe to redirect here
+  // as a belt-and-suspenders fallback
+  if (
+    [summaryResult, syncResult, ordersResult].some(
+      (r) => r.status === 'rejected' && r.reason?.name === 'UnauthorizedError',
+    )
+  ) {
+    redirect('/auth/login')
+  }
 
   const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : null
   const syncStatus = syncResult.status === 'fulfilled' ? syncResult.value : null

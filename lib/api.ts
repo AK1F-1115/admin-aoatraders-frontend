@@ -1,14 +1,37 @@
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { isRedirectError } from 'next/dist/client/components/redirect-error'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.aoatraders.com'
+
+/**
+ * Typed sentinel thrown when the backend returns 401.
+ * Callers that wrap apiRequest in Promise.allSettled must re-throw this
+ * so the Next.js redirect() can propagate correctly.
+ */
+export class UnauthorizedError extends Error {
+  constructor() {
+    super('Unauthorized')
+    this.name = 'UnauthorizedError'
+  }
+}
+
+/**
+ * Re-throw any error that must not be swallowed (Next.js redirect / notFound internals
+ * and our own UnauthorizedError). Call this in the catch/rejected branch of
+ * Promise.allSettled to ensure redirects always propagate.
+ */
+export function rethrowFatalErrors(err: unknown): void {
+  if (isRedirectError(err)) throw err
+  if (err instanceof UnauthorizedError) throw err
+}
 
 /**
  * Core fetch wrapper for all AOA admin API calls.
  * - Reads the AOA JWT from the `aoa_admin_token` httpOnly cookie
  * - Attaches it as `Authorization: Bearer <token>`
  * - Throws on non-2xx (with the backend `detail` message when available)
- * - On 401 from the backend: clears the cookie and redirects to /auth/login
+ * - On 401: clears the cookie and throws UnauthorizedError (do NOT call redirect()
+ *   here — redirect() throws NEXT_REDIRECT which Promise.allSettled will swallow)
  */
 export async function apiRequest<T>(
   path: string,
@@ -26,10 +49,10 @@ export async function apiRequest<T>(
     },
   })
 
-  // Expired / invalid session — clear cookie and boot to login
+  // Expired / invalid session — clear cookie and signal to caller
   if (res.status === 401) {
     cookieStore.delete('aoa_admin_token')
-    redirect('/auth/login')
+    throw new UnauthorizedError()
   }
 
   if (!res.ok) {
