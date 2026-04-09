@@ -11,13 +11,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.aoatraders.com'
  * Full two-layer teardown:
  *   1. POST /auth/admin/logout — server-side jti revocation of the AOA JWT
  *      (must happen BEFORE the cookie is deleted, token needed in Authorization header)
- *   2. Delete both local cookies (aoa_admin_token + wos-session)
- *   3. WorkOS signOut() — clears the WorkOS session so re-visiting /auth/login
- *      doesn't silently re-issue a new AOA token without showing the login screen
+ *   2. Delete aoa_admin_token cookie
+ *   3. WorkOS signOut() — reads wos-session to get the proper logout URL, clears it,
+ *      and redirects to WorkOS → then back to returnTo
  *
- * Step 1 uses a plain fetch (not apiRequest) so that a 401 from the backend
- * (e.g. already-expired token) does not trigger apiRequest's redirect() and
- * short-circuit the rest of the flow. Revocation is best-effort.
+ * NOTE: do NOT manually delete wos-session before step 3. workosSignOut needs
+ * it to construct the proper WorkOS logout URL. If it is missing, workosSignOut
+ * skips server-side session termination and redirects straight to returnTo,
+ * leaving the WorkOS session alive and causing OAuth state mismatch on re-login.
  */
 export async function signOut() {
   const cookieStore = await cookies()
@@ -38,13 +39,12 @@ export async function signOut() {
     }
   }
 
-  // 2. Clear local cookies
+  // 2. Delete the AOA cookie
   cookieStore.delete('aoa_admin_token')
-  // Clear the WorkOS session cookie locally so a failed WorkOS redirect doesn't
-  // leave a stale cookie that causes OAuth state mismatch on the next login.
-  cookieStore.delete('wos-session')
 
-  // 3. Terminate the WorkOS session (clears WorkOS cookies, redirects to returnTo)
-  // returnTo must be a URL registered in WorkOS dashboard (App Homepage URL).
+  // 3. Terminate the WorkOS session.
+  //    workosSignOut reads wos-session, calls the WorkOS logout endpoint,
+  //    clears the session cookie, and redirects to returnTo.
+  //    returnTo must be a URL registered in WorkOS dashboard (App Homepage URL).
   await workosSignOut({ returnTo: process.env.NEXT_PUBLIC_APP_URL })
 }

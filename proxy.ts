@@ -14,7 +14,7 @@ export default authkitProxy({
     // redirects to WorkOS directly (generating PKCE itself). Having a separate
     // /auth/login Route Handler also generating PKCE would overwrite the proxy's
     // PKCE cookie and cause 'OAuth state mismatch' on the callback.
-    unauthenticatedPaths: ['/auth/error'],
+    unauthenticatedPaths: ['/auth/error', '/auth/reset'],
   },
 })
 
