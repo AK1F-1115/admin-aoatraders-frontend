@@ -4,3 +4,61 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+/** Strip `.myshopify.com` suffix from a Shopify shop domain. */
+export function stripShopifyDomain(domain: string): string {
+  return domain.replace(/\.myshopify\.com$/, '')
+}
+
+/**
+ * Format a number as USD currency with no decimal places.
+ * e.g. 1234.5 → "$1,235"
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+/**
+ * Convert an ISO date string to a human-readable relative label.
+ * Returns "Never" for null/undefined inputs.
+ */
+export function formatRelativeTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return 'Never'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60_000)
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+/**
+ * Return a health color based on last sync timestamp and optional status string.
+ *
+ * - running → green
+ * - error   → red
+ * - null    → gray  (never synced)
+ * - < 2h    → green
+ * - 2–6h   → yellow
+ * - > 6h   → red
+ */
+export function getSyncHealthColor(
+  lastRun: string | null | undefined,
+  status?: string | null,
+): 'green' | 'yellow' | 'red' | 'gray' {
+  if (status === 'running') return 'green'
+  if (status === 'error') return 'red'
+  if (!lastRun) return 'gray'
+  const hours = (Date.now() - new Date(lastRun).getTime()) / 3_600_000
+  if (hours < 2) return 'green'
+  if (hours < 6) return 'yellow'
+  return 'red'
+}
