@@ -18,7 +18,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   try {
     order = await apiRequest<OrderDetail>(`/admin/orders/${orderId}`)
   } catch (err) {
-    if (err instanceof UnauthorizedError) redirect('/auth/login')
+    if (err instanceof UnauthorizedError) redirect('/auth/reset')
     notFound()
   }
 

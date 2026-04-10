@@ -34,7 +34,7 @@ export default async function DashboardPage() {
       (r) => r.status === 'rejected' && r.reason instanceof UnauthorizedError,
     )
   ) {
-    redirect('/auth/login')
+    redirect('/auth/reset')
   }
 
   const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : null

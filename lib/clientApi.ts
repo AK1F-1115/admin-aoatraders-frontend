@@ -24,8 +24,9 @@ export async function clientApiRequest<T>(
   })
 
   if (res.status === 401) {
-    // Redirect to WorkOS sign-in — cannot use Next.js redirect() in client components
-    window.location.href = '/auth/sign-in'
+    // /auth/reset clears stale aoa_admin_token + WorkOS cookies, then redirects to /
+    // where the proxy middleware initiates a fresh WorkOS PKCE flow.
+    window.location.href = '/auth/reset'
     throw new Error('Unauthorized')
   }
 

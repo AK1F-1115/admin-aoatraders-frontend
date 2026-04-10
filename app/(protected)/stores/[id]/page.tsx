@@ -20,7 +20,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   ])
 
   if (storeResult.status === 'rejected') {
-    if (storeResult.reason instanceof UnauthorizedError) redirect('/auth/login')
+    if (storeResult.reason instanceof UnauthorizedError) redirect('/auth/reset')
     notFound()
   }
 

@@ -15,7 +15,7 @@ export default async function StoresPage() {
     )
     stores = Array.isArray(raw) ? raw : (raw.items ?? [])
   } catch (err) {
-    if (err instanceof UnauthorizedError) redirect('/auth/login')
+    if (err instanceof UnauthorizedError) redirect('/auth/reset')
     // Non-fatal — render empty state
   }
 
