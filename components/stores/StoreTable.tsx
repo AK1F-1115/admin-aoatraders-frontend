@@ -124,7 +124,7 @@ export default function StoreTable({ stores }: StoreTableProps) {
                     <StatusBadge status={store.active ? 'active' : 'cancelled'} label={store.active ? 'Active' : 'Inactive'} />
                   </td>
                   <td className="px-4 py-3 tabular-nums">
-                    {store.active_product_count.toLocaleString()}
+                    {(store.active_product_count ?? 0).toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                     {formatRelativeTime(store.last_sync_at)}
