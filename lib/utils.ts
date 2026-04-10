@@ -12,7 +12,7 @@ export function stripShopifyDomain(domain: string): string {
 
 /**
  * Format a number as USD currency with no decimal places.
- * e.g. 1234.5 → "$1,235"
+ * e.g. 1234.5 → "$1,235" — use for KPI cards / large figures.
  */
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -20,6 +20,19 @@ export function formatCurrency(amount: number): string {
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+/**
+ * Format a number as USD currency with 2 decimal places.
+ * e.g. 39.97 → "$39.97" — use for individual order/line-item amounts.
+ */
+export function formatMoney(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount)
 }
 
