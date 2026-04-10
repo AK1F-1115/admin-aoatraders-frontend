@@ -1,22 +1,26 @@
 /**
  * Order domain types for the AOA Admin.
- * Matches GET /admin/orders response contract (spec §5.4, §15).
+ * Matches actual GET /admin/orders response (confirmed from live API).
+ *
+ * Key notes:
+ * - No `store` object returned by the list endpoint
+ * - Monetary fields are decimal strings e.g. "39.9700"
+ * - Use parseFloat() before passing to formatCurrency()
  */
 export type { OrderStatus } from './api.types'
-
-export interface OrderStore {
-  id: number
-  shop_domain: string
-}
 
 export interface Order {
   id: number
   shopify_order_id: string | null
-  store: OrderStore | null
+  shopify_order_number: string | null
+  customer_email: string | null
   customer_name: string | null
+  subtotal_price: string | null     // what merchant pays AOA — always populated
+  aoa_total_cost: string | null     // AOA cost — may be null
+  shipping_cost: string | null
   status: import('./api.types').OrderStatus
-  total_merchant_cost: number | null
-  total_aoa_cost: number | null
-  item_count: number
+  tracking_number: string | null
+  ordered_at: string | null
+  purchased_at: string | null
   created_at: string
 }

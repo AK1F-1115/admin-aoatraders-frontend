@@ -1,6 +1,6 @@
 import type { Order } from '@/types/order.types'
 import StatusBadge from '@/components/common/StatusBadge'
-import { formatRelativeTime, formatCurrency, stripShopifyDomain } from '@/lib/utils'
+import { formatRelativeTime, formatCurrency } from '@/lib/utils'
 
 interface RecentOrdersTableProps {
   orders: Order[]
@@ -38,7 +38,7 @@ export default function RecentOrdersTable({ orders, error, errorMessage }: Recen
                   Order
                 </th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">
-                  Store
+                  Customer
                 </th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">
                   Status
@@ -55,21 +55,21 @@ export default function RecentOrdersTable({ orders, error, errorMessage }: Recen
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-3 font-mono text-xs text-muted-foreground">
-                    #{(order.shopify_order_id ?? String(order.id)).slice(-8)}
+                    #{order.shopify_order_number ?? order.shopify_order_id?.slice(-8) ?? String(order.id)}
                   </td>
                   <td className="px-6 py-3 max-w-[140px] truncate">
-                    {order.store?.shop_domain
-                      ? stripShopifyDomain(order.store.shop_domain)
+                    {order.customer_name
+                      ? <span>{order.customer_name}</span>
                       : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="px-6 py-3">
                     <StatusBadge status={order.status} />
                   </td>
                   <td className="px-6 py-3 text-right font-medium tabular-nums">
-                    {order.total_merchant_cost != null ? formatCurrency(order.total_merchant_cost) : '—'}
+                    {order.subtotal_price != null ? formatCurrency(parseFloat(order.subtotal_price)) : '—'}
                   </td>
                   <td className="px-6 py-3 text-right text-muted-foreground whitespace-nowrap">
-                    {formatRelativeTime(order.created_at)}
+                    {formatRelativeTime(order.ordered_at ?? order.created_at)}
                   </td>
                 </tr>
               ))}
