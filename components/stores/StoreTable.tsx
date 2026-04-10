@@ -6,6 +6,8 @@ import type { Store } from '@/types/store.types'
 import StatusBadge from '@/components/common/StatusBadge'
 import { stripShopifyDomain, formatRelativeTime } from '@/lib/utils'
 
+import StoreCatalogCell from '@/components/stores/StoreCatalogCell'
+
 const PLAN_OPTIONS = ['All', 'free', 'starter', 'growth', 'pro'] as const
 const STATUS_OPTIONS = ['All', 'active', 'inactive'] as const
 
@@ -98,7 +100,7 @@ export default function StoreTable({ stores }: StoreTableProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/40">
-                {['Store', 'Plan', 'Status', 'Products', 'Last Sync', 'Auto Push', ''].map((h) => (
+                {['Store', 'Plan', 'Status', 'Products / Slots', 'Last Sync', 'Auto Push', ''].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap"
@@ -124,7 +126,7 @@ export default function StoreTable({ stores }: StoreTableProps) {
                     <StatusBadge status={store.active ? 'active' : 'cancelled'} label={store.active ? 'Active' : 'Inactive'} />
                   </td>
                   <td className="px-4 py-3 tabular-nums">
-                    {(store.active_product_count ?? 0).toLocaleString()}
+                    <StoreCatalogCell storeId={store.id} />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                     {formatRelativeTime(store.last_sync_at)}

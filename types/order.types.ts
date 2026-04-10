@@ -1,24 +1,24 @@
 /**
  * Order domain types for the AOA Admin.
- * Matches actual GET /admin/orders response (confirmed from live API).
+ * Confirmed against live API response contracts (ADMIN_FRONTEND.md §17).
  *
  * Key notes:
- * - No `store` object returned by the list endpoint
- * - Monetary fields are decimal strings e.g. "39.9700"
- * - Use parseFloat() before passing to formatMoney()
+ * - GET /admin/orders returns { orders: OrderListItem[], total, page, per_page, pages }
+ * - GET /admin/orders/{id} returns OrderDetail with line items under `items` key
+ * - All monetary fields are Decimal-as-string — always parseFloat() before arithmetic
  */
 export type { OrderStatus } from './api.types'
 
+/** List item from GET /admin/orders */
 export interface Order {
   id: number
-  store_id?: number | null
   shopify_order_id: string | null
-  shopify_order_number: string | null
+  shopify_order_number: string | null      // human-readable e.g. "#1042"
   customer_email: string | null
   customer_name: string | null
-  subtotal_price: string | null     // what merchant pays AOA — always populated
-  aoa_total_cost: string | null     // AOA cost — may be null
-  shipping_cost: string | null
+  subtotal_price: string | null            // what merchant's customer paid (Shopify)
+  aoa_total_cost: string | null            // what AOA charges the merchant
+  shipping_cost: string | null             // null until EDI 810 fills it
   status: import('./api.types').OrderStatus
   tracking_number: string | null
   ordered_at: string | null
@@ -27,36 +27,52 @@ export interface Order {
 }
 
 export interface ShippingAddress {
-  first_name?: string
-  last_name?: string
-  address1?: string
-  address2?: string
-  city?: string
-  province?: string
-  zip?: string
-  country?: string
-  phone?: string
+  first_name: string | null
+  last_name: string | null
+  address1: string | null
+  address2: string | null
+  city: string | null
+  province: string | null
+  province_code: string | null
+  country: string | null
+  country_code: string | null
+  zip: string | null
+  phone: string | null
 }
 
-export interface OrderLineItem {
+/** Line item from GET /admin/orders/{id} — under the `items` key */
+export interface OrderItem {
   id: number
+  shopify_line_item_id: string | null
+  shopify_variant_id: string | null
   aoa_sku: string | null
-  title: string
-  supplier: string | null
+  supplier_sku: string | null
+  supplier: 'essendant' | 'essendant_vds' | string | null
+  product_name: string | null              // display name
   quantity: number
-  unit_aoa_cost: string | null       // decimal string
-  unit_merchant_cost: string | null  // decimal string
+  shopify_price: string | null             // per-unit — what merchant's customer paid
+  merchant_cost: string | null             // per-unit — what AOA charges the merchant
+  line_total_cost: string | null           // merchant_cost × quantity (pre-computed)
+  variant_tier: number | null              // 1 = normal, 2 = VDS qty-break
 }
 
-/** Full order response from GET /admin/orders/{id} — includes store, line items, payment info */
+/** Full order from GET /admin/orders/{id} */
 export interface OrderDetail extends Order {
-  store: { id: number; shop_domain: string } | null
+  store_id: number
   stripe_payment_intent_id: string | null
+  stripe_payment_status: string | null
   shipping_address_json: ShippingAddress | null
-  line_items: OrderLineItem[]
+  fulfilled_at: string | null
+  updated_at: string
+  items: OrderItem[]                       // note: `items`, not `line_items`
 }
 
-export interface StatusUpdateRequest {
+/** Response from PATCH /admin/orders/{id}/status */
+export interface UpdateOrderStatusResponse {
+  order_id: number
   status: import('./api.types').OrderStatus
-  tracking_number?: string
+  tracking_number: string | null
+  refund_issued: boolean
+  refund_id: string | null
+  message: string
 }

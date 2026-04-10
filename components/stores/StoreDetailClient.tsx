@@ -7,10 +7,11 @@ import OverviewTab from '@/components/stores/tabs/OverviewTab'
 import ConfigTab from '@/components/stores/tabs/ConfigTab'
 import ActionsTab from '@/components/stores/tabs/ActionsTab'
 import WebhooksTab from '@/components/stores/tabs/WebhooksTab'
+import CatalogTab from '@/components/stores/tabs/CatalogTab'
 import { stripShopifyDomain } from '@/lib/utils'
 import StatusBadge from '@/components/common/StatusBadge'
 
-const TABS = ['Overview', 'Configuration', 'Actions', 'Webhooks'] as const
+const TABS = ['Overview', 'Configuration', 'Actions', 'Webhooks', 'Catalog'] as const
 type Tab = typeof TABS[number]
 
 interface StoreDetailClientProps {
@@ -71,6 +72,6 @@ export default function StoreDetailClient({ store, plans }: StoreDetailClientPro
         />
       )}
       {activeTab === 'Webhooks' && <WebhooksTab storeId={store.id} />}
-    </div>
+      {activeTab === 'Catalog' && <CatalogTab storeId={store.id} />}    </div>
   )
 }

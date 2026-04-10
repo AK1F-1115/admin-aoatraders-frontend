@@ -49,7 +49,35 @@ export interface Store {
   // Computed
   active_product_count: number
 }
+// ── Catalog summary types (GET /admin/stores/{id}/catalog-summary) ───────────────────
 
+export interface CatalogCategory {
+  name: string
+  count: number
+}
+
+export interface StoreCatalogSummary {
+  store_id: number
+  shop_domain: string
+  plan_name: string | null
+  plan_slug: string | null
+  // Slot accounting
+  slots_used: number
+  slots_total: number | null        // null = Pro (unlimited)
+  slots_remaining: number | null    // null = unlimited
+  // Product counts
+  total_active_variants: number
+  unique_product_count: number
+  retail_count: number
+  vds_count: number
+  vds_tier2_count: number
+  // Shopify push status
+  shopify_pushed_count: number
+  shopify_unpushed_count: number
+  last_sync_at: string | null
+  categories: CatalogCategory[]
+  brands: CatalogCategory[]
+}
 // ── Webhook types (GET /admin/stores/{id}/webhooks) ──────────────────────────
 
 export interface StoreWebhook {

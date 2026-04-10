@@ -13,24 +13,18 @@ export interface OrdersFilters {
 }
 
 /**
- * Normalise list response — mirrors the dashboard's multi-shape handling.
- * API may return: Order[], { items, total }, { data, total }, { orders, total }
+ * Normalise list response — API returns { orders: Order[], total, page, per_page, pages }
+ * Confirmed from live backend contract (ADMIN_FRONTEND.md §17).
  */
 function normalise(raw: unknown): { items: Order[]; total: number } {
-  if (Array.isArray(raw)) {
-    return { items: raw as Order[], total: (raw as Order[]).length }
-  }
   if (raw && typeof raw === 'object') {
     const obj = raw as Record<string, unknown>
-    // Try every key the backend has been observed to use
-    const items: Order[] =
-      (Array.isArray(obj.items) ? obj.items : null) ??
-      (Array.isArray(obj.data) ? obj.data : null) ??
-      (Array.isArray(obj.orders) ? obj.orders : null) ??
-      []
-    const total = typeof obj.total === 'number' ? obj.total : items.length
-    return { items, total }
+    if (Array.isArray(obj.orders)) {
+      return { items: obj.orders as Order[], total: typeof obj.total === 'number' ? obj.total : (obj.orders as unknown[]).length }
+    }
   }
+  // Fallback: plain array (defensive, shouldn't happen)
+  if (Array.isArray(raw)) return { items: raw as Order[], total: (raw as Order[]).length }
   return { items: [], total: 0 }
 }
 

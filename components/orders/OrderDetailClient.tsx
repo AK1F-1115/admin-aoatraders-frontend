@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { clientApiRequest } from '@/lib/clientApi'
 import type { OrderDetail } from '@/types/order.types'
+import type { Store } from '@/types/store.types'
 import StatusBadge from '@/components/common/StatusBadge'
 import { formatRelativeTime } from '@/lib/utils'
 import OrderSummaryCard from './OrderSummaryCard'
@@ -14,16 +17,19 @@ interface OrderDetailClientProps {
   order: OrderDetail
 }
 
-/**
- * Client wrapper for the Order Detail page.
- * Two-column layout: main content (summary + line items) and right sidebar (status panel).
- */
 export default function OrderDetailClient({ order }: OrderDetailClientProps) {
   const [currentOrder, setCurrentOrder] = useState(order)
 
+  // Lazy-fetch store to get shop_domain for Shopify admin link
+  const { data: storeData } = useQuery({
+    queryKey: ['store', currentOrder.store_id],
+    queryFn: () => clientApiRequest<Store>(`/admin/stores/${currentOrder.store_id}`),
+    enabled: !!currentOrder.store_id,
+    staleTime: 300_000,
+  })
+
   return (
     <div className="flex-1 space-y-6 p-6 lg:p-8">
-      {/* Back link + header */}
       <div className="space-y-1">
         <Link
           href="/orders"
@@ -43,22 +49,18 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
             {formatRelativeTime(currentOrder.created_at)}
           </span>
         </div>
-        {currentOrder.store && (
-          <p className="text-sm text-muted-foreground">
-            {currentOrder.store.shop_domain}
-          </p>
+        {storeData && (
+          <Link href={`/stores/${currentOrder.store_id}`} className="text-sm text-muted-foreground hover:underline">
+            {storeData.shop_domain}
+          </Link>
         )}
       </div>
 
-      {/* Two-column layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left: summary + line items */}
         <div className="space-y-6 lg:col-span-2">
-          <OrderSummaryCard order={currentOrder} />
-          <OrderLineItemsTable lineItems={currentOrder.line_items} />
+          <OrderSummaryCard order={currentOrder} shopDomain={storeData?.shop_domain ?? null} />
+          <OrderLineItemsTable items={currentOrder.items} />
         </div>
-
-        {/* Right: status panel */}
         <div>
           <OrderStatusPanel order={currentOrder} onStatusChange={setCurrentOrder} />
         </div>

@@ -45,6 +45,7 @@ export type OrderStatus =
   | 'shipped'
   | 'delivered'
   | 'cancelled'
+  | 'no_aoa_items'
 
 /** All possible store subscription statuses */
 export type StoreStatus = 'active' | 'pending' | 'cancelled' | 'free'
