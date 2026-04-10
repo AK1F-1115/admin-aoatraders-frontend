@@ -56,12 +56,12 @@ export default async function DashboardPage() {
       ?? ((ordersRaw as Record<string, unknown> | null)?.['data'] as Order[] | undefined)
       ?? ((ordersRaw as Record<string, unknown> | null)?.['orders'] as Order[] | undefined)
       ?? []
-  // Temporary: log the first order's keys to diagnose field name mismatches
-  if (orders.length > 0) {
-    console.log('[dashboard] first order keys:', JSON.stringify(orders[0]))
-  } else if (ordersRaw !== null) {
-    console.log('[dashboard] ordersRaw shape:', JSON.stringify(ordersRaw).slice(0, 500))
-  }
+  // Temporary: capture raw order data for inline debug panel
+  const debugOrderSample = orders.length > 0
+    ? JSON.stringify(orders[0], null, 2)
+    : ordersRaw !== null
+      ? JSON.stringify(ordersRaw).slice(0, 800)
+      : null
   const ordersError = ordersResult.status === 'rejected'
   const ordersErrorMessage =
     ordersResult.status === 'rejected'
@@ -128,6 +128,18 @@ export default async function DashboardPage() {
           />
         </div>
       </div>
+
+      {/* TEMP DEBUG — remove after field names confirmed */}
+      {debugOrderSample && (
+        <details className="rounded border border-yellow-400 bg-yellow-50 p-3 text-xs">
+          <summary className="cursor-pointer font-semibold text-yellow-800">
+            🐛 Debug: raw order[0] from API (click to expand)
+          </summary>
+          <pre className="mt-2 overflow-auto whitespace-pre-wrap text-yellow-900">
+            {debugOrderSample}
+          </pre>
+        </details>
+      )}
     </div>
   )
 }
