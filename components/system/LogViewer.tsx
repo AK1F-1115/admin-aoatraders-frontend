@@ -204,7 +204,7 @@ export default function LogViewer() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {data.entries.map((entry, i) => (
+              {[...data.entries].reverse().map((entry, i) => (
                 <LogRow
                   key={i}
                   entry={entry}
