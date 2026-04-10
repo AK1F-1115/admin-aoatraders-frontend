@@ -35,8 +35,15 @@ export default async function DashboardPage() {
   }
 
   const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : null
-  const syncSummary: SyncSummaryRow[] | null =
-    syncResult.status === 'fulfilled' ? syncResult.value : null
+  const syncRaw = syncResult.status === 'fulfilled' ? syncResult.value : null
+  // Handle both SyncSummaryRow[] directly and any { syncs: [...] } wrapper
+  const syncSummary: SyncSummaryRow[] | null = syncRaw === null
+    ? null
+    : Array.isArray(syncRaw)
+      ? syncRaw
+      : Array.isArray((syncRaw as Record<string, unknown>)['syncs'])
+        ? (syncRaw as Record<string, unknown>)['syncs'] as SyncSummaryRow[]
+        : null
   const ordersRaw = ordersResult.status === 'fulfilled' ? ordersResult.value : null
   // Handle all common FastAPI response shapes:
   //   - plain array: Order[]
@@ -87,7 +94,7 @@ export default async function DashboardPage() {
           value={summary?.total_orders ?? '—'}
           icon={ShoppingCart}
           description={
-            summary
+            summary?.period_start && summary?.period_end
               ? `${summary.period_start.slice(0, 10)} – ${summary.period_end.slice(0, 10)}`
               : undefined
           }
