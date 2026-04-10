@@ -63,3 +63,33 @@ export function getSyncHealthColor(
   if (hours < 6) return 'yellow'
   return 'red'
 }
+
+/** Number of whole minutes since a date string. Returns Infinity for null. */
+export function minutesSince(dateStr: string | null | undefined): number {
+  if (!dateStr) return Infinity
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 60_000)
+}
+
+/**
+ * Format a sync job duration from start/finish ISO strings.
+ * e.g. 234ms | 3.4s | 2m 14s
+ */
+export function formatDuration(
+  startedAt: string,
+  finishedAt: string | null,
+): string {
+  if (!finishedAt) return '—'
+  const ms = new Date(finishedAt).getTime() - new Date(startedAt).getTime()
+  if (ms < 1000) return `${ms}ms`
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`
+  return `${Math.floor(ms / 60_000)}m ${Math.floor((ms % 60_000) / 1000)}s`
+}
+
+/** Parse "processed=N ok=N failed=N" cron message into parts. */
+export function parseCronMessage(message: string): { processed: number; ok: number; failed: number } {
+  const n = (key: string) => {
+    const m = message.match(new RegExp(`${key}=(\\d+)`))
+    return m ? parseInt(m[1], 10) : 0
+  }
+  return { processed: n('processed'), ok: n('ok'), failed: n('failed') }
+}

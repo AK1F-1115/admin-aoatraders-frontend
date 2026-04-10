@@ -49,3 +49,30 @@ export interface Store {
   // Computed
   active_product_count: number
 }
+
+// ── Webhook types (GET /admin/stores/{id}/webhooks) ──────────────────────────
+
+export interface StoreWebhook {
+  id: number
+  topic: string
+  address: string
+  format: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface StoreWebhooksResponse {
+  store_id: number
+  shop_domain: string
+  count: number
+  webhooks: StoreWebhook[]
+}
+
+export interface RegisterWebhooksResponse {
+  store_id: number
+  shop_domain: string
+  registered: string[]
+  skipped: string[]
+  errors: string[]
+  ok: boolean
+}

@@ -1,18 +1,18 @@
 'use client'
 
-import { cn, getSyncHealthColor, formatRelativeTime } from '@/lib/utils'
+import { cn, getSyncHealthColor, formatRelativeTime, parseCronMessage } from '@/lib/utils'
 import SyncTriggerButton from '@/components/common/SyncTriggerButton'
 import type { SyncSummaryRow } from '@/types/sync.types'
 
 /** Human-readable labels for each known job_type identifier */
 const SYNC_LABELS: Record<string, string> = {
-  essendant_ingest: 'Essendant Ingest',
-  retail_push: 'Retail Push',
-  vds_push: 'VDS Push',
+  essendant_ingest: 'ICAPS Ingest',
+  retail_product_push: 'Retail Products',
+  vds_product_push: 'VDS Products',
   price_sync: 'Price Sync',
   inventory_sync: 'Inventory Sync',
-  status_reconcile: 'Status Reconcile',
-  shopify_inventory: 'Shopify Inventory',
+  status_sync: 'Status Sync',
+  auto_charge_cron: 'Billing Cron',
 }
 
 const COLOR_DOT: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
@@ -67,6 +67,8 @@ export default function SyncHealthPanel({
         ) : (
           syncSummary.map((sync) => {
             const color = getSyncHealthColor(sync.finished_at, sync.status)
+            const isCron = sync.job_type === 'auto_charge_cron'
+            const cronCounts = isCron && sync.message ? parseCronMessage(sync.message) : null
             return (
               <div
                 key={sync.job_type}
@@ -77,16 +79,26 @@ export default function SyncHealthPanel({
                     className={cn('h-2.5 w-2.5 rounded-full shrink-0 mt-0.5', COLOR_DOT[color])}
                     aria-hidden="true"
                   />
-                  <span className="text-sm font-medium truncate">
-                    {SYNC_LABELS[sync.job_type] ?? sync.job_type}
-                  </span>
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium truncate block">
+                      {SYNC_LABELS[sync.job_type] ?? sync.job_type}
+                    </span>
+                    {cronCounts && (
+                      <span className="text-xs text-muted-foreground">
+                        {cronCounts.processed} processed &middot; {cronCounts.ok} ok
+                        {cronCounts.failed > 0 && (
+                          <span className="text-destructive"> &middot; {cronCounts.failed} failed</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="text-right shrink-0">
                   <span className="text-sm text-muted-foreground whitespace-nowrap">
                     {formatRelativeTime(sync.finished_at)}
                   </span>
-                  {sync.status === 'error' && sync.message && (
+                  {sync.status === 'error' && sync.message && !isCron && (
                     <p className="text-xs text-destructive truncate max-w-[180px] text-right">
                       {sync.message}
                     </p>
