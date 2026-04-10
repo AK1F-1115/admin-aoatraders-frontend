@@ -12,11 +12,18 @@ export interface OrdersFilters {
   search?: string
 }
 
-/** Normalise list response \u2014 API may return Order[] or { items, total } */
-function normalise(raw: Order[] | { items?: Order[]; total?: number }) {
-  const items = Array.isArray(raw) ? raw : (raw.items ?? [])
-  const total = Array.isArray(raw) ? raw.length : (raw.total ?? items.length)
-  return { items, total }
+/** Normalise list response — API may return Order[], PaginatedResponse, or a plain { items, total } */
+function normalise(raw: unknown): { items: Order[]; total: number } {
+  if (Array.isArray(raw)) {
+    return { items: raw as Order[], total: (raw as Order[]).length }
+  }
+  if (raw && typeof raw === 'object') {
+    const obj = raw as Record<string, unknown>
+    const items = Array.isArray(obj.items) ? (obj.items as Order[]) : []
+    const total = typeof obj.total === 'number' ? obj.total : items.length
+    return { items, total }
+  }
+  return { items: [], total: 0 }
 }
 
 export function useOrders(filters: OrdersFilters = {}) {
@@ -30,7 +37,7 @@ export function useOrders(filters: OrdersFilters = {}) {
   return useQuery({
     queryKey: ['orders', filters],
     queryFn: async () => {
-      const raw = await clientApiRequest<Order[] | { items?: Order[]; total?: number }>(
+      const raw = await clientApiRequest<unknown>(
         `/admin/orders?${qs}`,
       )
       return normalise(raw)

@@ -28,7 +28,7 @@ export default function OrdersClient() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useOrders({ status, store_id: storeId, search, page })
+  const { data, isLoading, isError, error } = useOrders({ status, store_id: storeId, search, page })
 
   // Fetch stores for the filter dropdown
   const { data: storesRaw } = useQuery({
@@ -56,6 +56,12 @@ export default function OrdersClient() {
         onStore={(id) => resetPage(() => setStoreId(id))}
         onSearch={(s) => resetPage(() => setSearch(s))}
       />
+
+      {isError && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          Failed to load orders: {error instanceof Error ? error.message : 'Unknown error'}
+        </div>
+      )}
 
       <OrderTable
         orders={data?.items ?? []}
