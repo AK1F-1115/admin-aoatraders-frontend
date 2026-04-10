@@ -5,6 +5,7 @@ import { formatRelativeTime, formatCurrency, stripShopifyDomain } from '@/lib/ut
 interface RecentOrdersTableProps {
   orders: Order[]
   error?: boolean
+  errorMessage?: string
 }
 
 /**
@@ -12,7 +13,7 @@ interface RecentOrdersTableProps {
  *
  * Columns: Order #, Store, Status, Amount, Date
  */
-export default function RecentOrdersTable({ orders, error }: RecentOrdersTableProps) {
+export default function RecentOrdersTable({ orders, error, errorMessage }: RecentOrdersTableProps) {
   return (
     <div className="rounded-xl border bg-card shadow-sm">
       <div className="px-6 py-4 border-b">
@@ -20,7 +21,12 @@ export default function RecentOrdersTable({ orders, error }: RecentOrdersTablePr
       </div>
 
       {error ? (
-        <p className="px-6 py-4 text-sm text-destructive">Failed to load orders.</p>
+        <div className="px-6 py-4">
+          <p className="text-sm text-destructive">Failed to load orders.</p>
+          {errorMessage && (
+            <p className="text-xs text-muted-foreground mt-1 font-mono">{errorMessage}</p>
+          )}
+        </div>
       ) : orders.length === 0 ? (
         <p className="px-6 py-4 text-sm text-muted-foreground">No orders found.</p>
       ) : (

@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   const [summaryResult, syncResult, ordersResult] = await Promise.allSettled([
     apiRequest<AnalyticsSummary>('/admin/analytics/summary'),
     apiRequest<SyncSummaryRow[]>('/admin/sync/summary'),
-    apiRequest<PaginatedResponse<Order> | Order[]>('/admin/orders?per_page=5&sort=created_at:desc'),
+    apiRequest<PaginatedResponse<Order> | Order[]>('/admin/orders?per_page=5'),
   ])
 
   // If any API call returned 401, boot to login
@@ -38,10 +38,22 @@ export default async function DashboardPage() {
   const syncSummary: SyncSummaryRow[] | null =
     syncResult.status === 'fulfilled' ? syncResult.value : null
   const ordersRaw = ordersResult.status === 'fulfilled' ? ordersResult.value : null
+  // Handle all common FastAPI response shapes:
+  //   - plain array: Order[]
+  //   - { items: Order[] }  (standard PaginatedResponse)
+  //   - { data: Order[] }   (some FastAPI setups)
+  //   - { orders: Order[] } (named key variant)
   const orders: Order[] = Array.isArray(ordersRaw)
     ? ordersRaw
-    : (ordersRaw?.items ?? [])
+    : ((ordersRaw as Record<string, unknown> | null)?.['items'] as Order[] | undefined)
+      ?? ((ordersRaw as Record<string, unknown> | null)?.['data'] as Order[] | undefined)
+      ?? ((ordersRaw as Record<string, unknown> | null)?.['orders'] as Order[] | undefined)
+      ?? []
   const ordersError = ordersResult.status === 'rejected'
+  const ordersErrorMessage =
+    ordersResult.status === 'rejected'
+      ? (ordersResult.reason as Error)?.message
+      : undefined
   const summaryError = summaryResult.status === 'rejected'
 
   return (
@@ -93,7 +105,7 @@ export default async function DashboardPage() {
       {/* Main content — recent orders (2/3) + sync health (1/3) */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <RecentOrdersTable orders={orders} error={ordersError} />
+          <RecentOrdersTable orders={orders} error={ordersError} errorMessage={ordersErrorMessage} />
         </div>
         <div>
           <SyncHealthPanel
