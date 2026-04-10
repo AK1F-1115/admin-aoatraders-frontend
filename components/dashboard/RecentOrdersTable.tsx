@@ -55,16 +55,18 @@ export default function RecentOrdersTable({ orders, error, errorMessage }: Recen
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-3 font-mono text-xs text-muted-foreground">
-                    #{order.shopify_order_id.slice(-8)}
+                    #{(order.shopify_order_id ?? String(order.id)).slice(-8)}
                   </td>
                   <td className="px-6 py-3 max-w-[140px] truncate">
-                    {stripShopifyDomain(order.store.shop_domain)}
+                    {order.store?.shop_domain
+                      ? stripShopifyDomain(order.store.shop_domain)
+                      : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="px-6 py-3">
                     <StatusBadge status={order.status} />
                   </td>
                   <td className="px-6 py-3 text-right font-medium tabular-nums">
-                    {formatCurrency(order.total_merchant_cost)}
+                    {order.total_merchant_cost != null ? formatCurrency(order.total_merchant_cost) : '—'}
                   </td>
                   <td className="px-6 py-3 text-right text-muted-foreground whitespace-nowrap">
                     {formatRelativeTime(order.created_at)}

@@ -11,11 +11,11 @@ export interface OrderStore {
 
 export interface Order {
   id: number
-  shopify_order_id: string
-  store: OrderStore
+  shopify_order_id: string | null
+  store: OrderStore | null
   customer_name: string | null
   status: import('./api.types').OrderStatus
-  total_merchant_cost: number
+  total_merchant_cost: number | null
   total_aoa_cost: number | null
   item_count: number
   created_at: string
