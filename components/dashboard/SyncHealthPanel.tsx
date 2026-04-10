@@ -2,9 +2,9 @@
 
 import { cn, getSyncHealthColor, formatRelativeTime } from '@/lib/utils'
 import SyncTriggerButton from '@/components/common/SyncTriggerButton'
-import type { SyncStatusResponse } from '@/types/sync.types'
+import type { SyncSummaryRow } from '@/types/sync.types'
 
-/** Human-readable labels for each known sync_type identifier */
+/** Human-readable labels for each known job_type identifier */
 const SYNC_LABELS: Record<string, string> = {
   essendant_ingest: 'Essendant Ingest',
   retail_push: 'Retail Push',
@@ -12,6 +12,7 @@ const SYNC_LABELS: Record<string, string> = {
   price_sync: 'Price Sync',
   inventory_sync: 'Inventory Sync',
   status_reconcile: 'Status Reconcile',
+  shopify_inventory: 'Shopify Inventory',
 }
 
 const COLOR_DOT: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
@@ -22,7 +23,7 @@ const COLOR_DOT: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
 }
 
 interface SyncHealthPanelProps {
-  syncStatus: SyncStatusResponse | null
+  syncSummary: SyncSummaryRow[] | null
   /** Server Action — POST /admin/sync/essendant/run */
   onEssendantSync: () => Promise<void>
   /** Server Action — POST /admin/sync/shopify/run */
@@ -33,16 +34,16 @@ interface SyncHealthPanelProps {
  * Sync Health panel shown on the dashboard sidebar column.
  *
  * Client component so it can host the interactive SyncTriggerButtons.
- * Receives pre-fetched sync status from the parent Server Component.
+ * Receives pre-fetched summary from GET /admin/sync/summary (one row per job_type).
  *
  * Color legend:
- *   🟢 green  — last run < 2 h ago
+ *   🟢 green  — last run < 2 h ago AND status = success
  *   🟡 yellow — last run 2–6 h ago
  *   🔴 red    — last run > 6 h ago OR status = error
- *   ⚫ gray   — never run
+ *   ⚫ gray   — never run OR status = skipped
  */
 export default function SyncHealthPanel({
-  syncStatus,
+  syncSummary,
   onEssendantSync,
   onShopifySync,
 }: SyncHealthPanelProps) {
@@ -59,16 +60,16 @@ export default function SyncHealthPanel({
 
       {/* Sync rows */}
       <div className="divide-y">
-        {!syncStatus?.syncs ? (
+        {!syncSummary ? (
           <p className="px-6 py-4 text-sm text-muted-foreground">Sync status unavailable.</p>
-        ) : syncStatus.syncs.length === 0 ? (
+        ) : syncSummary.length === 0 ? (
           <p className="px-6 py-4 text-sm text-muted-foreground">No sync runs recorded yet.</p>
         ) : (
-          syncStatus.syncs.map((sync) => {
-            const color = getSyncHealthColor(sync.last_run, sync.status)
+          syncSummary.map((sync) => {
+            const color = getSyncHealthColor(sync.finished_at, sync.status)
             return (
               <div
-                key={sync.sync_type}
+                key={sync.job_type}
                 className="flex items-start justify-between gap-4 px-6 py-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -77,17 +78,17 @@ export default function SyncHealthPanel({
                     aria-hidden="true"
                   />
                   <span className="text-sm font-medium truncate">
-                    {SYNC_LABELS[sync.sync_type] ?? sync.sync_type}
+                    {SYNC_LABELS[sync.job_type] ?? sync.job_type}
                   </span>
                 </div>
 
                 <div className="text-right shrink-0">
                   <span className="text-sm text-muted-foreground whitespace-nowrap">
-                    {formatRelativeTime(sync.last_run)}
+                    {formatRelativeTime(sync.finished_at)}
                   </span>
-                  {sync.last_error && (
+                  {sync.status === 'error' && sync.message && (
                     <p className="text-xs text-destructive truncate max-w-[180px] text-right">
-                      {sync.last_error}
+                      {sync.message}
                     </p>
                   )}
                 </div>

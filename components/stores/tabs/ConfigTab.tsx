@@ -60,10 +60,23 @@ interface ConfigTabProps {
 
 export default function ConfigTab({ store, plans }: ConfigTabProps) {
   const [isPending, startTransition] = useTransition()
-  const [selectedPlanId, setSelectedPlanId] = useState<number>(store.subscription_plan?.id ?? 0)
+  const [selectedPlanId, setSelectedPlanId] = useState<number>(store.subscription_plan_id ?? 0)
   const [isPlanPending, startPlanTransition] = useTransition()
 
+  // Safe typed accessors for the untyped sync_config record
   const sc = store.sync_config
+  const scBool = (key: string, fallback: boolean) => {
+    const v = sc?.[key]; return typeof v === 'boolean' ? v : fallback
+  }
+  const scNum = (key: string, fallback: number) => {
+    const v = sc?.[key]; return typeof v === 'number' ? v : fallback
+  }
+  const scNumNull = (key: string): number | null => {
+    const v = sc?.[key]; return typeof v === 'number' ? v : null
+  }
+  const scStrArr = (key: string): string[] => {
+    const v = sc?.[key]; return Array.isArray(v) ? (v as string[]) : []
+  }
 
   const form = useForm<ConfigFormValues>({
     resolver: zodResolver(configSchema),
@@ -71,17 +84,19 @@ export default function ConfigTab({ store, plans }: ConfigTabProps) {
       merchant_markup_pct_retail: decToDisplay(store.merchant_markup_pct_retail),
       merchant_markup_pct_vds: decToDisplay(store.merchant_markup_pct_vds),
       merchant_markup_pct_wholesale: decToDisplay(store.merchant_markup_pct_wholesale),
-      push_retail: sc?.push_retail ?? false,
-      push_vds: sc?.push_vds ?? false,
-      use_auto_pricing: sc?.use_auto_pricing ?? false,
-      auto_shipping_profiles: sc?.auto_shipping_profiles ?? false,
-      max_retail: sc?.max_retail ?? null,
-      max_vds: sc?.max_vds ?? null,
-      min_brand_products: sc?.min_brand_products ?? 0,
-      retail_categories: arrToStr(sc?.retail_categories ?? []),
-      excluded_categories: arrToStr(sc?.excluded_categories ?? []),
-      retail_brands: arrToStr(sc?.retail_brands ?? []),
-      excluded_brands: arrToStr(sc?.excluded_brands ?? []),
+      push_retail: scBool('push_retail', false),
+      push_vds: scBool('push_vds', false),
+      // use_auto_pricing and auto_shipping_profiles are now top-level store fields,
+      // but sync_config may also carry them — prefer sync_config value, fall back to store
+      use_auto_pricing: scBool('use_auto_pricing', store.use_auto_pricing),
+      auto_shipping_profiles: scBool('auto_shipping_profiles', store.auto_shipping_profiles),
+      max_retail: scNumNull('max_retail'),
+      max_vds: scNumNull('max_vds'),
+      min_brand_products: scNum('min_brand_products', 0),
+      retail_categories: arrToStr(scStrArr('retail_categories')),
+      excluded_categories: arrToStr(scStrArr('excluded_categories')),
+      retail_brands: arrToStr(scStrArr('retail_brands')),
+      excluded_brands: arrToStr(scStrArr('excluded_brands')),
     },
   })
 

@@ -24,7 +24,7 @@ export default function StoreTable({ stores }: StoreTableProps) {
 
   const filtered = useMemo(() => {
     return stores.filter((s) => {
-      if (planFilter !== 'All' && (s.subscription_plan?.slug ?? 'free') !== planFilter) return false
+      if (planFilter !== 'All' && (s.subscription_plan_slug ?? 'free') !== planFilter) return false
       if (statusFilter === 'active' && !s.active) return false
       if (statusFilter === 'inactive' && s.active) return false
       if (search) {
@@ -116,8 +116,8 @@ export default function StoreTable({ stores }: StoreTableProps) {
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge
-                      status={store.subscription_plan?.slug ?? 'free'}
-                      label={store.subscription_plan?.name ?? 'Free'}
+                      status={store.subscription_plan_slug ?? 'free'}
+                      label={store.subscription_plan_name ?? 'Free'}
                     />
                   </td>
                   <td className="px-4 py-3">
@@ -130,7 +130,7 @@ export default function StoreTable({ stores }: StoreTableProps) {
                     {formatRelativeTime(store.last_sync_at)}
                   </td>
                   <td className="px-4 py-3">
-                    {store.sync_config?.push_retail || store.sync_config?.push_vds ? (
+                    {(store.sync_config?.['push_retail'] || store.sync_config?.['push_vds']) ? (
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
                         Enabled
                       </span>

@@ -56,6 +56,7 @@ export function getSyncHealthColor(
 ): 'green' | 'yellow' | 'red' | 'gray' {
   if (status === 'running') return 'green'
   if (status === 'error') return 'red'
+  if (status === 'skipped') return 'gray'
   if (!lastRun) return 'gray'
   const hours = (Date.now() - new Date(lastRun).getTime()) / 3_600_000
   if (hours < 2) return 'green'

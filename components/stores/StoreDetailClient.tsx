@@ -32,8 +32,8 @@ export default function StoreDetailClient({ store, plans }: StoreDetailClientPro
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge
-            status={store.subscription_plan?.slug ?? 'free'}
-            label={store.subscription_plan?.name ?? 'Free'}
+            status={store.subscription_plan_slug ?? 'free'}
+            label={store.subscription_plan_name ?? 'Free'}
           />
           <StatusBadge
             status={store.active ? 'active' : 'cancelled'}

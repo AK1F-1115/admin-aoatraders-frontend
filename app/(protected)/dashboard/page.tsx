@@ -9,7 +9,7 @@ import { Building2, DollarSign, ShoppingCart, Package } from 'lucide-react'
 import { apiRequest, UnauthorizedError } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
 import type { AnalyticsSummary } from '@/types/analytics.types'
-import type { SyncStatusResponse, SyncTypeStatus } from '@/types/sync.types'
+import type { SyncSummaryRow } from '@/types/sync.types'
 import type { Order } from '@/types/order.types'
 import type { PaginatedResponse } from '@/types/api.types'
 import KpiCard from '@/components/dashboard/KpiCard'
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   // Parallel fetch — a single failure won't crash the whole page
   const [summaryResult, syncResult, ordersResult] = await Promise.allSettled([
     apiRequest<AnalyticsSummary>('/admin/analytics/summary'),
-    apiRequest<SyncStatusResponse | SyncTypeStatus[]>('/admin/sync/status'),
+    apiRequest<SyncSummaryRow[]>('/admin/sync/summary'),
     apiRequest<PaginatedResponse<Order> | Order[]>('/admin/orders?per_page=5&sort=created_at:desc'),
   ])
 
@@ -35,13 +35,8 @@ export default async function DashboardPage() {
   }
 
   const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : null
-  const syncRaw = syncResult.status === 'fulfilled' ? syncResult.value : null
-  // API may return SyncTypeStatus[] directly or { syncs: SyncTypeStatus[] }
-  const syncStatus: SyncStatusResponse | null = syncRaw === null
-    ? null
-    : Array.isArray(syncRaw)
-      ? { syncs: syncRaw }
-      : syncRaw
+  const syncSummary: SyncSummaryRow[] | null =
+    syncResult.status === 'fulfilled' ? syncResult.value : null
   const ordersRaw = ordersResult.status === 'fulfilled' ? ordersResult.value : null
   const orders: Order[] = Array.isArray(ordersRaw)
     ? ordersRaw
@@ -102,7 +97,7 @@ export default async function DashboardPage() {
         </div>
         <div>
           <SyncHealthPanel
-            syncStatus={syncStatus}
+            syncSummary={syncSummary}
             onEssendantSync={triggerEssendantSync}
             onShopifySync={triggerShopifySync}
           />

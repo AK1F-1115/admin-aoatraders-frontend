@@ -26,17 +26,17 @@ export default function OverviewTab({ store }: { store: Store }) {
       <Row label="Display Name">{stripShopifyDomain(store.shop_domain)}</Row>
       <Row label="Subscription Plan">
         <StatusBadge
-          status={store.subscription_plan?.slug ?? 'free'}
-          label={store.subscription_plan?.name ?? 'Free'}
+          status={store.subscription_plan_slug ?? 'free'}
+          label={store.subscription_plan_name ?? 'Free'}
         />
       </Row>
       <Row label="Subscription Status">
-        <StatusBadge status={store.subscription_status} />
+        <StatusBadge status={store.subscription_status ?? 'free'} />
       </Row>
       <Row label="Store Active">
         <Chip active={store.active} />
       </Row>
-      <Row label="Active Products">{store.active_product_count.toLocaleString()}</Row>
+      <Row label="Active Products">{(store.active_product_count ?? 0).toLocaleString()}</Row>
       <Row label="Location ID">{store.location_id ?? <span className="text-muted-foreground">—</span>}</Row>
       <Row label="Collections Bootstrapped">
         <Chip active={store.collections_bootstrapped} />
@@ -44,7 +44,11 @@ export default function OverviewTab({ store }: { store: Store }) {
       <Row label="Shipping Profiles Bootstrapped">
         <Chip active={store.shipping_profiles_bootstrapped} />
       </Row>
-      <Row label="Installed At">{new Date(store.installed_at).toLocaleDateString('en-US', { dateStyle: 'medium' })}</Row>
+      <Row label="Installed At">
+        {store.installed_at
+          ? new Date(store.installed_at).toLocaleDateString('en-US', { dateStyle: 'medium' })
+          : <span className="text-muted-foreground">—</span>}
+      </Row>
       <Row label="Last Sync">{formatRelativeTime(store.last_sync_at)}</Row>
     </div>
   )
