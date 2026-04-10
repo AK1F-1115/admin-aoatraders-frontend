@@ -56,6 +56,12 @@ export default async function DashboardPage() {
       ?? ((ordersRaw as Record<string, unknown> | null)?.['data'] as Order[] | undefined)
       ?? ((ordersRaw as Record<string, unknown> | null)?.['orders'] as Order[] | undefined)
       ?? []
+  // Temporary: log the first order's keys to diagnose field name mismatches
+  if (orders.length > 0) {
+    console.log('[dashboard] first order keys:', JSON.stringify(orders[0]))
+  } else if (ordersRaw !== null) {
+    console.log('[dashboard] ordersRaw shape:', JSON.stringify(ordersRaw).slice(0, 500))
+  }
   const ordersError = ordersResult.status === 'rejected'
   const ordersErrorMessage =
     ordersResult.status === 'rejected'
