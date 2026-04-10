@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   BarChart3,
   CreditCard,
@@ -10,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Monitor,
   RefreshCw,
   ShoppingCart,
   Store,
@@ -17,6 +19,9 @@ import {
   X,
 } from 'lucide-react'
 import { signOut } from '@/lib/actions/auth'
+import { clientApiRequest } from '@/lib/clientApi'
+import type { SystemHealth } from '@/types/system.types'
+import { minutesSince } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,6 +29,7 @@ const NAV_ITEMS = [
   { href: '/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/sync', label: 'Sync', icon: RefreshCw },
+  { href: '/system', label: 'System', icon: Monitor },
   { href: '/price-plans', label: 'Price Plans', icon: Tags },
   { href: '/mappings', label: 'Mappings', icon: GitBranch },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
@@ -39,6 +45,18 @@ export default function Sidebar({ userEmail, userName, userInitials }: SidebarPr
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // Poll system health for the red dot alert indicator on the System nav item
+  const { data: systemHealth } = useQuery({
+    queryKey: ['system', 'health'],
+    queryFn: () => clientApiRequest<SystemHealth>('/admin/system'),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  })
+  const systemAlert =
+    systemHealth != null &&
+    (systemHealth.sync_errors_24h > 0 ||
+      minutesSince(systemHealth.cron_last_run?.started_at) > 90)
+
   const navContent = (
     <nav className="flex flex-col h-full">
       {/* Logo */}
@@ -50,6 +68,7 @@ export default function Sidebar({ userEmail, userName, userInitials }: SidebarPr
       <ul className="flex-1 py-4 space-y-0.5 px-3 overflow-y-auto">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
+          const showAlert = href === '/system' && systemAlert
           return (
             <li key={href}>
               <Link
@@ -62,7 +81,13 @@ export default function Sidebar({ userEmail, userName, userInitials }: SidebarPr
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>{label}</span>
+                <span className="flex-1">{label}</span>
+                {showAlert && (
+                  <span
+                    className="h-2 w-2 rounded-full bg-red-500 shrink-0"
+                    aria-label="System alert"
+                  />
+                )}
               </Link>
             </li>
           )

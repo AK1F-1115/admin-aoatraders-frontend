@@ -12,17 +12,20 @@ import type { AnalyticsSummary } from '@/types/analytics.types'
 import type { SyncSummaryRow } from '@/types/sync.types'
 import type { Order } from '@/types/order.types'
 import type { PaginatedResponse } from '@/types/api.types'
+import type { SystemHealth } from '@/types/system.types'
 import KpiCard from '@/components/dashboard/KpiCard'
 import SyncHealthPanel from '@/components/dashboard/SyncHealthPanel'
 import RecentOrdersTable from '@/components/dashboard/RecentOrdersTable'
+import SystemHealthBanner from '@/components/dashboard/SystemHealthBanner'
 import { triggerEssendantSync, triggerShopifySync } from '@/lib/actions/sync'
 
 export default async function DashboardPage() {
   // Parallel fetch — a single failure won't crash the whole page
-  const [summaryResult, syncResult, ordersResult] = await Promise.allSettled([
+  const [summaryResult, syncResult, ordersResult, healthResult] = await Promise.allSettled([
     apiRequest<AnalyticsSummary>('/admin/analytics/summary'),
     apiRequest<SyncSummaryRow[]>('/admin/sync/summary'),
     apiRequest<PaginatedResponse<Order> | Order[]>('/admin/orders?per_page=5'),
+    apiRequest<SystemHealth>('/admin/system'),
   ])
 
   // If any API call returned 401, boot to login
@@ -56,6 +59,8 @@ export default async function DashboardPage() {
       ?? ((ordersRaw as Record<string, unknown> | null)?.['data'] as Order[] | undefined)
       ?? ((ordersRaw as Record<string, unknown> | null)?.['orders'] as Order[] | undefined)
       ?? []
+  const health = healthResult.status === 'fulfilled' ? healthResult.value : null
+  const healthError = healthResult.status === 'rejected'
   const ordersError = ordersResult.status === 'rejected'
   const ordersErrorMessage =
     ordersResult.status === 'rejected'
@@ -72,6 +77,9 @@ export default async function DashboardPage() {
           Overview of AOA Traders platform operations
         </p>
       </div>
+
+      {/* System health banner */}
+      <SystemHealthBanner health={health} error={healthError} />
 
       {/* KPI grid — 1 col → 2 col → 4 col */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
