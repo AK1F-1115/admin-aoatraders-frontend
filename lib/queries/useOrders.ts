@@ -12,14 +12,22 @@ export interface OrdersFilters {
   search?: string
 }
 
-/** Normalise list response — API may return Order[], PaginatedResponse, or a plain { items, total } */
+/**
+ * Normalise list response — mirrors the dashboard's multi-shape handling.
+ * API may return: Order[], { items, total }, { data, total }, { orders, total }
+ */
 function normalise(raw: unknown): { items: Order[]; total: number } {
   if (Array.isArray(raw)) {
     return { items: raw as Order[], total: (raw as Order[]).length }
   }
   if (raw && typeof raw === 'object') {
     const obj = raw as Record<string, unknown>
-    const items = Array.isArray(obj.items) ? (obj.items as Order[]) : []
+    // Try every key the backend has been observed to use
+    const items: Order[] =
+      (Array.isArray(obj.items) ? obj.items : null) ??
+      (Array.isArray(obj.data) ? obj.data : null) ??
+      (Array.isArray(obj.orders) ? obj.orders : null) ??
+      []
     const total = typeof obj.total === 'number' ? obj.total : items.length
     return { items, total }
   }
