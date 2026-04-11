@@ -69,12 +69,12 @@ export default function PricePlanTable({ plans, isLoading, onEdit }: PricePlanTa
                   className="transition-colors hover:bg-muted/30"
                 >
                   <td className="px-4 py-3 font-medium">{plan.name}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{fmtPct(plan.markup_retail)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{fmtPct(plan.markup_vds)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{fmtPct(plan.markup_wholesale)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{fmtPct(plan.aoa_markup_pct_retail)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{fmtPct(plan.aoa_markup_pct_vds)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{fmtPct(plan.aoa_markup_pct_wholesale)}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     <span className="inline-flex items-center justify-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      {plan.store_count}
+                      —
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">

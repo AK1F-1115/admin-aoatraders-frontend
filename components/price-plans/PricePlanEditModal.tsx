@@ -54,9 +54,9 @@ export default function PricePlanEditModal({ plan, onClose }: PricePlanEditModal
   useEffect(() => {
     if (plan) {
       form.reset({
-        markup_retail: toDisplay(plan.markup_retail),
-        markup_vds: toDisplay(plan.markup_vds),
-        markup_wholesale: toDisplay(plan.markup_wholesale),
+        markup_retail: toDisplay(plan.aoa_markup_pct_retail),
+        markup_vds: toDisplay(plan.aoa_markup_pct_vds),
+        markup_wholesale: toDisplay(plan.aoa_markup_pct_wholesale),
       })
     }
   }, [plan, form])
@@ -78,9 +78,9 @@ export default function PricePlanEditModal({ plan, onClose }: PricePlanEditModal
         await mutateAsync({
           id: plan.id,
           body: {
-            markup_retail: toDecimal(values.markup_retail),
-            markup_vds: toDecimal(values.markup_vds),
-            markup_wholesale: toDecimal(values.markup_wholesale),
+            aoa_markup_pct_retail: toDecimal(values.markup_retail),
+            aoa_markup_pct_vds: toDecimal(values.markup_vds),
+            aoa_markup_pct_wholesale: toDecimal(values.markup_wholesale),
           },
         })
         toast.success(`"${plan.name}" markups updated`)
