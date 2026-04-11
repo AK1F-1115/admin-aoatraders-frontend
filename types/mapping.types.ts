@@ -20,3 +20,12 @@ export interface Mapping {
 export interface UpdateMappingBody {
   active?: boolean
 }
+
+/** Parsed response including server-side pagination metadata (if present). */
+export interface MappingsResponse {
+  items: Mapping[]
+  /** True total from the server (may be larger than items.length if capped). */
+  total: number
+  /** Pagination params the server recognised (for debugging). */
+  meta: Record<string, unknown>
+}

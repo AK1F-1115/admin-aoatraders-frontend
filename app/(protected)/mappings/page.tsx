@@ -26,7 +26,7 @@ export default async function MappingsPage() {
   let initialData: Mapping[] | undefined
 
   try {
-    const raw = await apiRequest<unknown>('/admin/mappings')
+    const raw = await apiRequest<unknown>('/admin/mappings?limit=9999')
     initialData = normaliseMappings(raw)
   } catch (err) {
     if (err instanceof UnauthorizedError) redirect('/auth/reset')
