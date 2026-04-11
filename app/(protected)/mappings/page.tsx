@@ -22,21 +22,35 @@ function normalisePage(raw: unknown): Mapping[] {
 }
 
 const FETCH_BATCH = 200
+const CONCURRENCY = 10
 
 export default async function MappingsPage() {
   let initialData: Mapping[] | undefined
 
   try {
-    // Fetch all pages server-side so the initial render has the full dataset.
+    // Fetch all pages server-side using parallel waves for speed.
+    const fetchPage = (offset: number) =>
+      apiRequest<unknown>(`/admin/mappings?limit=${FETCH_BATCH}&offset=${offset}`).then(normalisePage)
+
     const all: Mapping[] = []
-    let offset = 0
-    for (let i = 0; i < 500; i++) {
-      const raw = await apiRequest<unknown>(`/admin/mappings?limit=${FETCH_BATCH}&offset=${offset}`)
-      const page = normalisePage(raw)
-      all.push(...page)
-      if (page.length < FETCH_BATCH) break
-      offset += FETCH_BATCH
+    const first = await fetchPage(0)
+    all.push(...first)
+
+    if (first.length === FETCH_BATCH) {
+      let offset = FETCH_BATCH
+      while (true) {
+        const offsets = Array.from({ length: CONCURRENCY }, (_, i) => offset + i * FETCH_BATCH)
+        const pages = await Promise.all(offsets.map(fetchPage))
+        let done = false
+        for (const page of pages) {
+          all.push(...page)
+          if (page.length < FETCH_BATCH) { done = true; break }
+        }
+        if (done) break
+        offset += CONCURRENCY * FETCH_BATCH
+      }
     }
+
     initialData = all
   } catch (err) {
     if (err instanceof UnauthorizedError) redirect('/auth/reset')

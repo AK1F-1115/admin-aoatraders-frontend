@@ -20,24 +20,42 @@ function normalisePage(raw: unknown): Mapping[] {
 
 /** Items per request — matches the API default page size. */
 const FETCH_BATCH = 200
+/** Number of concurrent page requests per wave. */
+const CONCURRENCY = 10
 
 /**
- * Fetch ALL mappings by looping through offset pages until the API returns
- * a partial page (< FETCH_BATCH items), signalling the last page.
- * Safety cap: 500 pages = 100k items max.
+ * Fetch ALL mappings using parallel waves of CONCURRENCY requests.
+ * - Probes offset 0 first; if a full page returns, fires the next
+ *   CONCURRENCY offsets in parallel, repeating until a partial page signals
+ *   the end.  ~10× faster than sequential for large datasets.
  */
 async function fetchAllMappingPages(): Promise<Mapping[]> {
-  const all: Mapping[] = []
-  let offset = 0
-  for (let i = 0; i < 500; i++) {
-    const raw = await clientApiRequest<unknown>(
+  const fetchPage = (offset: number) =>
+    clientApiRequest<unknown>(
       `/admin/mappings?limit=${FETCH_BATCH}&offset=${offset}`,
-    )
-    const page = normalisePage(raw)
-    all.push(...page)
-    if (page.length < FETCH_BATCH) break // last page reached
-    offset += FETCH_BATCH
+    ).then(normalisePage)
+
+  const all: Mapping[] = []
+
+  // Probe: sequential first page to decide whether more pages exist.
+  const first = await fetchPage(0)
+  all.push(...first)
+  if (first.length < FETCH_BATCH) return all
+
+  // Parallel waves until a partial page is found.
+  let offset = FETCH_BATCH
+  while (true) {
+    const offsets = Array.from({ length: CONCURRENCY }, (_, i) => offset + i * FETCH_BATCH)
+    const pages = await Promise.all(offsets.map(fetchPage))
+    let done = false
+    for (const page of pages) {
+      all.push(...page)
+      if (page.length < FETCH_BATCH) { done = true; break }
+    }
+    if (done) break
+    offset += CONCURRENCY * FETCH_BATCH
   }
+
   return all
 }
 
