@@ -28,6 +28,7 @@ export async function assignPlan(storeId: number, planId: number): Promise<void>
   })
   revalidatePath(`/stores/${storeId}`)
   revalidatePath('/stores')
+  revalidatePath('/billing')
 }
 
 // ── Per-store sync actions ──────────────────────────────────────────────────
