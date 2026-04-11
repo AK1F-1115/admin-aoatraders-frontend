@@ -29,7 +29,7 @@ export default function BillingClient() {
 
   // Build a planId → price map once plans are loaded
   const planPrices = useMemo(
-    () => Object.fromEntries(plans.map((p) => [p.id, p.price_usd])),
+    () => Object.fromEntries(plans.map((p) => [p.id, Number(p.price_usd)])),
     [plans],
   )
 

@@ -59,9 +59,9 @@ export default function PlansReferenceTable({ plans, stores }: PlansReferenceTab
                     {plan.slug}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {plan.price_usd === 0
+                    {Number(plan.price_usd) === 0
                       ? 'Free'
-                      : `$${plan.price_usd.toFixed(2)}`}
+                      : `$${Number(plan.price_usd).toFixed(2)}`}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {plan.sku_limit == null ? '∞' : plan.sku_limit.toLocaleString()}

@@ -6,7 +6,7 @@ export interface BillingPlan {
   id: number
   slug: string
   name: string
-  price_usd: number
+  price_usd: number | string   // API returns string; always coerce via Number()
   sku_limit: number | null
   trial_days: number
 }

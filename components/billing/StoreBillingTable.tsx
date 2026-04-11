@@ -156,7 +156,7 @@ function StoreBillingRow({ store, plans }: RowProps) {
             {plans.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
-                {p.price_usd === 0 ? ' (Free)' : ` ($${p.price_usd}/mo)`}
+                {Number(p.price_usd) === 0 ? ' (Free)' : ` ($${Number(p.price_usd).toFixed(2)}/mo)`}
               </option>
             ))}
           </select>
