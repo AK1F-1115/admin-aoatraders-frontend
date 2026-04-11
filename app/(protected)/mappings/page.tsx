@@ -9,25 +9,35 @@ import { apiRequest, UnauthorizedError } from '@/lib/api'
 import type { Mapping } from '@/types/mapping.types'
 import MappingClient from '@/components/mappings/MappingClient'
 
-function normaliseMappings(raw: unknown): Mapping[] {
-  let items: unknown[] = []
-  if (Array.isArray(raw)) {
-    items = raw
-  } else if (raw && typeof raw === 'object') {
+function normalisePage(raw: unknown): Mapping[] {
+  if (Array.isArray(raw)) return raw as Mapping[]
+  if (raw && typeof raw === 'object') {
     const obj = raw as Record<string, unknown>
-    if (Array.isArray(obj.mappings)) items = obj.mappings
-    else if (Array.isArray(obj.items)) items = obj.items
-    else if (Array.isArray(obj.data)) items = obj.data
+    if (Array.isArray(obj.mappings)) return obj.mappings as Mapping[]
+    if (Array.isArray(obj.items)) return obj.items as Mapping[]
+    if (Array.isArray(obj.data)) return obj.data as Mapping[]
+    if (Array.isArray(obj.results)) return obj.results as Mapping[]
   }
-  return items as Mapping[]
+  return []
 }
+
+const FETCH_BATCH = 200
 
 export default async function MappingsPage() {
   let initialData: Mapping[] | undefined
 
   try {
-    const raw = await apiRequest<unknown>('/admin/mappings?limit=9999')
-    initialData = normaliseMappings(raw)
+    // Fetch all pages server-side so the initial render has the full dataset.
+    const all: Mapping[] = []
+    let offset = 0
+    for (let i = 0; i < 500; i++) {
+      const raw = await apiRequest<unknown>(`/admin/mappings?limit=${FETCH_BATCH}&offset=${offset}`)
+      const page = normalisePage(raw)
+      all.push(...page)
+      if (page.length < FETCH_BATCH) break
+      offset += FETCH_BATCH
+    }
+    initialData = all
   } catch (err) {
     if (err instanceof UnauthorizedError) redirect('/auth/reset')
     // Non-fatal: client will fetch on mount

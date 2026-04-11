@@ -102,7 +102,7 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
  *   inventory_item_id, location_id, active, last_synced_quantity,
  *   created_at, updated_at
  */
-export default function MappingTable({ mappings, serverTotal }: { mappings: Mapping[]; serverTotal?: number }) {
+export default function MappingTable({ mappings }: { mappings: Mapping[] }) {
   const [search, setSearch] = useState('')
   const [supplierFilter, setSupplierFilter] = useState('all')
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all')
@@ -229,8 +229,7 @@ export default function MappingTable({ mappings, serverTotal }: { mappings: Mapp
         <div className="px-4 py-3 border-t border-border bg-muted/30 flex items-center justify-between gap-4 flex-wrap">
           <span className="text-xs text-muted-foreground">
             {filtered.length.toLocaleString()} result{filtered.length !== 1 ? 's' : ''}
-            {filtered.length !== mappings.length && ` (filtered from ${mappings.length.toLocaleString()} loaded)`}
-            {serverTotal != null && serverTotal > mappings.length && ` — ${serverTotal.toLocaleString()} total on server`}
+            {filtered.length !== mappings.length && ` (filtered from ${mappings.length.toLocaleString()})`}
             {totalPages > 1 && ` — page ${clampedPage + 1} of ${totalPages}`}
           </span>
           {totalPages > 1 && (

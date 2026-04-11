@@ -10,10 +10,7 @@ interface MappingClientProps {
 }
 
 function MappingContent() {
-  const { data, isLoading, isError } = useMappings()
-  const mappings = data?.items ?? []
-  const total = data?.total ?? 0
-  const isCapped = total > mappings.length
+  const { data: mappings = [], isLoading, isError } = useMappings()
 
   if (isLoading) {
     return (
@@ -31,28 +28,13 @@ function MappingContent() {
     )
   }
 
-  return (
-    <div className="space-y-3">
-      {isCapped && (
-        <div className="rounded-md border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-          <strong>Partial results:</strong> showing {mappings.length.toLocaleString()} of{' '}
-          {total.toLocaleString()} total mappings. The API is capping the response —
-          check browser console for <code className="font-mono text-xs">meta</code> keys to find the correct pagination param.
-        </div>
-      )}
-      <MappingTable mappings={mappings} serverTotal={total} />
-    </div>
-  )
+  return <MappingTable mappings={mappings} />
 }
 
 export default function MappingClient({ initialData }: MappingClientProps) {
   const queryClient = new QueryClient()
   if (initialData) {
-    queryClient.setQueryData(['mappings'], {
-      items: initialData,
-      total: initialData.length,
-      meta: {},
-    })
+    queryClient.setQueryData(['mappings'], initialData)
   }
 
   return (
