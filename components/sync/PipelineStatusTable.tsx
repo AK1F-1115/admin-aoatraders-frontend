@@ -18,6 +18,9 @@ const JOB_ORDER = [
   'promote_wholesale_catalog',
   'push_shopify',
   'push_shopify_prices',
+  'push_shopify_products',
+  'push_shopify_vds_products',
+  'shopify_status_sync',
   'auto_charge_cron',
 ]
 

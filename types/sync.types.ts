@@ -84,5 +84,20 @@ export const PIPELINE_META: Record<string, PipelineMeta> = {
     recordsField: 'message',
     triggerable: false,
   },
+  push_shopify_products: {
+    label: 'Shopify Products Push',
+    recordsField: 'updates_sent',
+    triggerable: false,
+  },
+  push_shopify_vds_products: {
+    label: 'VDS Products Push',
+    recordsField: 'updates_sent',
+    triggerable: false,
+  },
+  shopify_status_sync: {
+    label: 'Shopify Status Sync',
+    recordsField: 'updates_sent',
+    triggerable: false,
+  },
 }
 
