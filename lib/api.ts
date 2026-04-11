@@ -1,6 +1,9 @@
 import { cookies } from 'next/headers'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.aoatraders.com'
+const API_BASE =
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'https://api.aoatraders.com'
 
 /**
  * Typed sentinel thrown when the backend returns 401.

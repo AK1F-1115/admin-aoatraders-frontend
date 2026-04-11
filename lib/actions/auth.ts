@@ -3,7 +3,10 @@
 import { signOut as workosSignOut } from '@workos-inc/authkit-nextjs'
 import { cookies } from 'next/headers'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.aoatraders.com'
+const API_BASE =
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'https://api.aoatraders.com'
 
 /**
  * Sign-out server action.

@@ -54,7 +54,7 @@ export const GET = handleAuth({
     cookieStore.set('aoa_admin_token', access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       maxAge: expires_in, // 86400 = 24 hours
       path: '/',
     })

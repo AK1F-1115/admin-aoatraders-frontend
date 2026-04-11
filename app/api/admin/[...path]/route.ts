@@ -12,9 +12,16 @@ import { cookies } from 'next/headers'
  *
  * Client components call: /api/admin/system  →  API_BASE/admin/system
  * Client components call: /api/admin/stores/3/webhooks  →  API_BASE/admin/stores/3/webhooks
+ *
+ * Security: path traversal blocked — any segment equal to '..' is rejected.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.aoatraders.com'
+// Prefer API_URL (server-only) so the backend URL is not embedded in the client bundle.
+// Fall back to NEXT_PUBLIC_API_URL for environments that only set the public var.
+const API_BASE =
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'https://api.aoatraders.com'
 
 type Context = { params: Promise<{ path: string[] }> }
 
@@ -25,6 +32,11 @@ async function handler(req: NextRequest, context: Context): Promise<NextResponse
 
   if (!token) {
     return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Block path traversal — reject any segment that is '..'
+  if (path.some((segment) => segment === '..')) {
+    return NextResponse.json({ detail: 'Bad Request' }, { status: 400 })
   }
 
   const pathStr = path.join('/')
