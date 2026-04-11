@@ -1,20 +1,22 @@
 /**
- * Mapping types — field names TBD, confirmed via console.log on first page load.
- * Update this interface once real field names are known from the live API.
+ * Mapping types — field names confirmed from live API.
  *
- * Spec: GET /admin/mappings — editable category/brand → mapping value pairs
- *       PATCH /admin/mappings/{id} — update active state or variant_ids
+ * Spec: GET /admin/mappings — supplier SKU → Shopify variant mappings used in sync
+ *       PATCH /admin/mappings/{id} — update active state
  */
 export interface Mapping {
   id: number
-  // Field names TBD — will be confirmed from console.log in useMappings.ts
-  // Likely candidates: type, name/source, value/mapped_to, active, variant_ids, etc.
-  [key: string]: unknown
+  supplier: string
+  supplier_sku: string
+  shopify_variant_id: string
+  inventory_item_id: string
+  location_id: string
+  active: boolean
+  last_synced_quantity: number | null
+  created_at: string
+  updated_at: string
 }
 
 export interface UpdateMappingBody {
   active?: boolean
-  variant_ids?: number[]
-  // Other fields TBD after field name discovery
-  [key: string]: unknown
 }

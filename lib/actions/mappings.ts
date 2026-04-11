@@ -6,7 +6,7 @@ import type { Mapping, UpdateMappingBody } from '@/types/mapping.types'
 
 /**
  * PATCH /admin/mappings/{id}
- * Updates the active state or variant_ids for a category/brand mapping.
+ * Toggles the active state for a supplier SKU → Shopify variant mapping.
  */
 export async function updateMapping(
   id: number,
