@@ -100,7 +100,7 @@ export default function StoreTable({ stores }: StoreTableProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/40">
-                {['Store', 'Plan', 'Status', 'Products / Slots', 'Last Sync', 'Auto Push', ''].map((h) => (
+                {['Store', 'Billing Plan', 'Price Plan', 'Status', 'Products / Slots', 'Last Sync', 'Auto Push', ''].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap"
@@ -121,6 +121,11 @@ export default function StoreTable({ stores }: StoreTableProps) {
                       status={store.subscription_plan_slug ?? 'free'}
                       label={store.subscription_plan_name ?? 'Free'}
                     />
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {store.price_plan_name ?? (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={store.active ? 'active' : 'cancelled'} label={store.active ? 'Active' : 'Inactive'} />
