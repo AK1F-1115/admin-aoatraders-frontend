@@ -22,6 +22,7 @@ import { signOut } from '@/lib/actions/auth'
 import { clientApiRequest } from '@/lib/clientApi'
 import type { SystemHealth } from '@/types/system.types'
 import { minutesSince } from '@/lib/utils'
+import { ThemeToggle } from '@/components/common/ThemeToggle'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -94,7 +95,7 @@ export default function Sidebar({ userEmail, userName, userInitials }: SidebarPr
         })}
       </ul>
 
-      {/* User + sign out */}
+      {/* User + sign out + theme toggle */}
       <div className="border-t border-border p-4 space-y-3">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
@@ -105,15 +106,18 @@ export default function Sidebar({ userEmail, userName, userInitials }: SidebarPr
             <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
           </div>
         </div>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
-          >
-            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-            Sign Out
-          </button>
-        </form>
+        <div className="flex items-center gap-1">
+          <form action={signOut} className="flex-1">
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+            >
+              <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+              Sign Out
+            </button>
+          </form>
+          <ThemeToggle />
+        </div>
       </div>
     </nav>
   )
