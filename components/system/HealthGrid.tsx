@@ -15,10 +15,10 @@ type ChipVariant = 'green' | 'yellow' | 'red' | 'gray'
 
 function Badge({ label, variant }: { label: string; variant: ChipVariant }) {
   const cls: Record<ChipVariant, string> = {
-    green: 'bg-green-100 text-green-800',
-    yellow: 'bg-yellow-100 text-yellow-800',
-    red: 'bg-red-100 text-red-800',
-    gray: 'bg-gray-100 text-gray-600',
+    green: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400',
+    yellow: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+    red: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400',
+    gray: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
   }
   return (
     <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${cls[variant]}`}>
@@ -79,7 +79,7 @@ export default function HealthGrid({ health }: HealthGridProps) {
                 key={i}
                 className={`rounded px-1.5 py-0.5 text-xs font-mono ${
                   head.startsWith('error:')
-                    ? 'bg-red-100 text-red-700'
+                    ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
@@ -158,18 +158,18 @@ export default function HealthGrid({ health }: HealthGridProps) {
                   <span className="rounded bg-muted px-1.5 py-0.5 text-xs">
                     {cronCounts.processed} processed
                   </span>
-                  <span className="rounded bg-green-50 text-green-700 px-1.5 py-0.5 text-xs">
+                  <span className="rounded bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-400 px-1.5 py-0.5 text-xs">
                     {cronCounts.ok} ok
                   </span>
                   {cronCounts.failed > 0 && (
-                    <span className="rounded bg-red-50 text-red-700 px-1.5 py-0.5 text-xs">
+                    <span className="rounded bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-400 px-1.5 py-0.5 text-xs">
                       {cronCounts.failed} failed
                     </span>
                   )}
                 </div>
               )}
               {cronStale && (
-                <p className="text-xs font-medium text-yellow-700">
+                <p className="text-xs font-medium text-yellow-700 dark:text-yellow-400">
                   ⚠ Stale — cron may not be running
                 </p>
               )}

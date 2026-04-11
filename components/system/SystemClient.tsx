@@ -16,7 +16,7 @@ export default function SystemClient() {
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400 p-4 text-sm">
           Failed to load system health: {(error as Error).message}
         </div>
       )}

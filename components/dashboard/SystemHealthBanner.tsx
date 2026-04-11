@@ -17,10 +17,10 @@ type ChipVariant = 'green' | 'yellow' | 'red' | 'gray'
 
 function Chip({ label, variant }: { label: string; variant: ChipVariant }) {
   const cls: Record<ChipVariant, string> = {
-    green: 'bg-green-100 text-green-800',
-    yellow: 'bg-yellow-100 text-yellow-800',
-    red: 'bg-red-100 text-red-800',
-    gray: 'bg-gray-100 text-gray-600',
+    green: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400',
+    yellow: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+    red: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400',
+    gray: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
   }
   return (
     <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${cls[variant]}`}>
@@ -47,8 +47,8 @@ export default function SystemHealthBanner({ health, error }: SystemHealthBanner
     cronStale
 
   const bannerBg = hasIssues
-    ? 'bg-yellow-50 border-yellow-200'
-    : 'bg-green-50 border-green-200'
+    ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-900'
+    : 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900'
 
   return (
     <div className={`flex flex-wrap items-center gap-2 rounded-lg border px-4 py-2.5 ${bannerBg}`}>

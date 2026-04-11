@@ -16,11 +16,11 @@ const LEVEL_OPTIONS = [
 ] as const
 
 const LEVEL_COLORS: Record<string, string> = {
-  DEBUG: 'bg-gray-100 text-gray-600',
-  INFO: 'bg-blue-100 text-blue-700',
-  WARNING: 'bg-yellow-100 text-yellow-700',
-  ERROR: 'bg-red-100 text-red-700',
-  CRITICAL: 'bg-red-900 text-white',
+  DEBUG: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+  INFO: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
+  WARNING: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
+  ERROR: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  CRITICAL: 'bg-red-900 text-white dark:bg-red-950 dark:text-red-300',
 }
 
 /** Parse "store=3 | app:161" context into { storeId, location } */
@@ -59,7 +59,7 @@ function LogRow({
   }
 
   const { storeId, location } = parseContext(entry.context)
-  const levelColor = LEVEL_COLORS[entry.level ?? ''] ?? 'bg-gray-100 text-gray-600'
+  const levelColor = LEVEL_COLORS[entry.level ?? ''] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
 
   return (
     <>
@@ -173,12 +173,12 @@ export default function LogViewer() {
 
       {/* Alerts */}
       {data?.warning && (
-        <div className="border-b bg-yellow-50 px-4 py-2 text-sm text-yellow-700">
+        <div className="border-b bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300 px-4 py-2 text-sm">
           ⚠ {data.warning}
         </div>
       )}
       {data?.error && (
-        <div className="border-b bg-red-50 px-4 py-2 text-sm text-red-700">
+        <div className="border-b bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 px-4 py-2 text-sm">
           Error reading log: {data.error}
         </div>
       )}

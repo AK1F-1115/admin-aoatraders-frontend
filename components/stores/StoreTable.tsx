@@ -133,11 +133,11 @@ export default function StoreTable({ stores }: StoreTableProps) {
                   </td>
                   <td className="px-4 py-3">
                     {(store.sync_config?.['push_retail'] || store.sync_config?.['push_vds']) ? (
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                      <span className="inline-flex items-center rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-2 py-0.5 text-xs font-medium">
                         Enabled
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                      <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 px-2 py-0.5 text-xs font-medium">
                         Disabled
                       </span>
                     )}
