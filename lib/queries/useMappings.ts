@@ -10,9 +10,6 @@ import type { Mapping, UpdateMappingBody } from '@/types/mapping.types'
  * console.log below will reveal the real response shape on first page load.
  */
 function normaliseMappings(raw: unknown): Mapping[] {
-  // 🔍 FIELD DISCOVERY — remove once real field names are confirmed
-  console.log('[useMappings] raw response:', JSON.stringify(raw, null, 2))
-
   let items: unknown[] = []
   if (Array.isArray(raw)) {
     items = raw
@@ -21,17 +18,7 @@ function normaliseMappings(raw: unknown): Mapping[] {
     if (Array.isArray(obj.mappings)) items = obj.mappings
     else if (Array.isArray(obj.items)) items = obj.items
     else if (Array.isArray(obj.data)) items = obj.data
-    else {
-      // Log all top-level keys to identify the wrapper
-      console.log('[useMappings] wrapper keys:', Object.keys(obj))
-    }
   }
-
-  if (items.length > 0) {
-    console.log('[useMappings] first item keys:', Object.keys(items[0] as object))
-    console.log('[useMappings] first item:', items[0])
-  }
-
   return items as Mapping[]
 }
 

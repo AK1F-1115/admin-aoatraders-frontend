@@ -15,6 +15,15 @@ interface MappingTableProps {
  * Fields confirmed so far: TBD (check browser console for [useMappings] logs)
  */
 export default function MappingTable({ mappings }: MappingTableProps) {
+  // 🔍 FIELD DISCOVERY — remove once real field names are confirmed
+  if (mappings.length > 0) {
+    console.log('[MappingTable] first item:', JSON.stringify(mappings[0], null, 2))
+    console.log('[MappingTable] all keys:', Object.keys(mappings[0]))
+    console.log('[MappingTable] total rows:', mappings.length)
+  } else {
+    console.log('[MappingTable] response was empty array — check API endpoint')
+  }
+
   if (mappings.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground text-sm">
