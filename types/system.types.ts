@@ -45,3 +45,45 @@ export interface SystemLogs {
   warning?: string   // log file not found
   error?: string     // read error
 }
+
+// ── File browser types (GET /admin/system/files, GET /admin/system/file) ─────
+
+export interface FileEntry {
+  name: string
+  type: 'file' | 'dir'
+  path: string
+  size?: number       // bytes, present on files
+  language?: string   // e.g. "python", "toml", present on files
+}
+
+export interface FileList {
+  path: string
+  entries: FileEntry[]
+}
+
+export interface FileContent {
+  path: string
+  language: string
+  size: number
+  content: string
+}
+
+// ── Config editor types (GET /admin/system/config, PATCH /admin/system/config) ─
+
+export interface ConfigEntry {
+  value: string
+  masked: boolean
+  patchable: boolean
+}
+
+export interface SystemConfig {
+  count: number
+  settings: Record<string, ConfigEntry>
+  note?: string
+}
+
+export interface PatchConfigResponse {
+  ok: boolean
+  applied: string[]
+  note: string
+}

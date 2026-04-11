@@ -3,6 +3,8 @@
 import { useSystemHealth } from '@/lib/queries/useSystem'
 import HealthGrid from './HealthGrid'
 import LogViewer from './LogViewer'
+import FileBrowser from './FileBrowser'
+import ConfigEditor from './ConfigEditor'
 
 export default function SystemClient() {
   const { data: health, isLoading, error } = useSystemHealth()
@@ -27,6 +29,19 @@ export default function SystemClient() {
         <h2 className="mb-3 text-base font-semibold">Log Viewer</h2>
         <LogViewer />
       </div>
+
+      {/* File browser */}
+      <div>
+        <h2 className="mb-3 text-base font-semibold">File Browser</h2>
+        <FileBrowser />
+      </div>
+
+      {/* Config editor */}
+      <div>
+        <h2 className="mb-3 text-base font-semibold">Config Editor</h2>
+        <ConfigEditor />
+      </div>
     </div>
   )
 }
+
