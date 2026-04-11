@@ -46,35 +46,36 @@ export interface PipelineMeta {
 }
 
 export const PIPELINE_META: Record<string, PipelineMeta> = {
-  essendant_ingest: {
+  ingest: {
     label: 'ICAPS Ingest',
     recordsField: 'records_read',
     triggerable: true,
     triggerType: 'essendant',
   },
-  retail_product_push: {
+  promote_catalog: {
     label: 'Retail Products',
     recordsField: 'updates_sent',
     triggerable: true,
     triggerType: 'shopify',
   },
-  vds_product_push: {
+  promote_vds_catalog: {
     label: 'VDS Products',
     recordsField: 'updates_sent',
     triggerable: false,
   },
-  price_sync: {
+  promote_wholesale_catalog: {
+    label: 'Wholesale Products',
+    recordsField: 'updates_sent',
+    triggerable: false,
+  },
+  push_shopify: {
+    label: 'Shopify Push',
+    recordsField: 'updates_sent',
+    triggerable: true,
+    triggerType: 'shopify',
+  },
+  push_shopify_prices: {
     label: 'Price Sync',
-    recordsField: 'updates_sent',
-    triggerable: false,
-  },
-  inventory_sync: {
-    label: 'Inventory Sync',
-    recordsField: 'updates_sent',
-    triggerable: false,
-  },
-  status_sync: {
-    label: 'Status Sync',
     recordsField: 'updates_sent',
     triggerable: false,
   },

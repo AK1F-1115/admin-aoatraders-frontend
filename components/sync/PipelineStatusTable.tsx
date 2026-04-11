@@ -12,12 +12,12 @@ import { PIPELINE_META } from '@/types/sync.types'
  * the API returns jobs in a different sequence.
  */
 const JOB_ORDER = [
-  'essendant_ingest',
-  'retail_product_push',
-  'vds_product_push',
-  'price_sync',
-  'inventory_sync',
-  'status_sync',
+  'ingest',
+  'promote_catalog',
+  'promote_vds_catalog',
+  'promote_wholesale_catalog',
+  'push_shopify',
+  'push_shopify_prices',
   'auto_charge_cron',
 ]
 
