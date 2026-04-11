@@ -11,7 +11,7 @@ interface TopBarProps {
  */
 export default function TopBar({ userName, userEmail, userInitials }: TopBarProps) {
   return (
-    <header className="h-14 shrink-0 border-b border-border bg-background flex items-center justify-between px-6 pl-14 md:pl-6">
+    <header className="h-14 shrink-0 border-b border-border bg-background/95 backdrop-blur-sm flex items-center justify-between px-6 pl-14 md:pl-6">
       {/* Left: visible on mobile where sidebar is hidden */}
       <span className="text-sm font-semibold text-foreground md:hidden">AOA Admin</span>
 
@@ -22,7 +22,7 @@ export default function TopBar({ userName, userEmail, userInitials }: TopBarProp
           <p className="text-xs text-muted-foreground leading-tight">{userEmail}</p>
         </div>
         <div
-          className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0"
+          className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-foreground shrink-0 ring-2 ring-primary/20"
           aria-hidden="true"
         >
           {userInitials}
