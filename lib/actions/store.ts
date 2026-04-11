@@ -31,6 +31,21 @@ export async function assignPlan(storeId: number, planId: number): Promise<void>
   revalidatePath('/billing')
 }
 
+/**
+ * POST /admin/stores/{id}/assign-plan
+ * Assigns an AOA internal price plan (markup tier) to a store.
+ * Validates plan is active; automatically triggers a full Shopify price reprice.
+ */
+export async function assignPricePlan(storeId: number, pricePlanId: number): Promise<void> {
+  await apiRequest<void>(`/admin/stores/${storeId}/assign-plan`, {
+    method: 'POST',
+    body: JSON.stringify({ price_plan_id: pricePlanId }),
+  })
+  revalidatePath(`/stores/${storeId}`)
+  revalidatePath('/stores')
+  revalidatePath('/price-plans')
+}
+
 // ── Per-store sync actions ──────────────────────────────────────────────────
 
 export async function syncRetail(storeId: number): Promise<void> {

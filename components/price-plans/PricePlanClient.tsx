@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { usePricePlans } from '@/lib/queries/usePricePlans'
+import toast from 'react-hot-toast'
+import { usePricePlans, useDeletePricePlan } from '@/lib/queries/usePricePlans'
 import PricePlanTable from './PricePlanTable'
 import PricePlanEditModal from './PricePlanEditModal'
+import PricePlanCreateModal from './PricePlanCreateModal'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import type { PricePlan } from '@/types/price-plan.types'
 
 interface PricePlanClientProps {
@@ -12,8 +15,22 @@ interface PricePlanClientProps {
 
 export default function PricePlanClient({ initialData }: PricePlanClientProps) {
   const [editingPlan, setEditingPlan] = useState<PricePlan | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
+  const [deletingPlan, setDeletingPlan] = useState<PricePlan | null>(null)
 
   const { data: plans = [], isLoading, isError } = usePricePlans(initialData)
+  const { mutateAsync: deletePlan, isPending: isDeleting } = useDeletePricePlan()
+
+  async function handleConfirmDelete() {
+    if (!deletingPlan) return
+    try {
+      await deletePlan(deletingPlan.id)
+      toast.success(`"${deletingPlan.name}" deactivated.`)
+      setDeletingPlan(null)
+    } catch {
+      toast.error('Failed to deactivate plan. Please try again.')
+    }
+  }
 
   return (
     <div className="flex-1 space-y-6 p-6 lg:p-8">
@@ -34,11 +51,28 @@ export default function PricePlanClient({ initialData }: PricePlanClientProps) {
         plans={plans}
         isLoading={isLoading}
         onEdit={(plan) => setEditingPlan(plan)}
+        onCreate={() => setIsCreating(true)}
+        onDelete={(plan) => setDeletingPlan(plan)}
       />
 
       <PricePlanEditModal
         plan={editingPlan}
         onClose={() => setEditingPlan(null)}
+      />
+
+      <PricePlanCreateModal
+        open={isCreating}
+        onClose={() => setIsCreating(false)}
+      />
+
+      <ConfirmModal
+        open={!!deletingPlan}
+        title="Deactivate price plan?"
+        description={`"${deletingPlan?.name}" will be marked inactive and can no longer be assigned to stores. Stores already on this plan are not affected.`}
+        confirmText="Deactivate"
+        loading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingPlan(null)}
       />
     </div>
   )

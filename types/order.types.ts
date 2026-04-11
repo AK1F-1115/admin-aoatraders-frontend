@@ -60,11 +60,21 @@ export interface OrderItem {
 export interface OrderDetail extends Order {
   store_id: number
   stripe_payment_intent_id: string | null
-  stripe_payment_status: string | null
+  stripe_payment_status: 'succeeded' | 'failed' | 'requires_action' | 'canceled' | 'refunded' | string | null
   shipping_address_json: ShippingAddress | null
   fulfilled_at: string | null
   updated_at: string
   items: OrderItem[]                       // note: `items`, not `line_items`
+  /** Number of failed auto-charge attempts (0 = none) */
+  charge_attempts: number
+  /** Last Stripe decline message, if any */
+  charge_failure_reason: string | null
+  /** True if a chargeback has been filed */
+  is_disputed: boolean
+  /** Stripe dispute ID (dp_...) */
+  dispute_id: string | null
+  /** Stripe dispute reason (e.g. 'fraudulent') */
+  dispute_reason: string | null
 }
 
 /** Response from PATCH /admin/orders/{id}/status */

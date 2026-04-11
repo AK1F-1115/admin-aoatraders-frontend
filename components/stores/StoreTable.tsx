@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useTransition } from 'react'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 import type { Store } from '@/types/store.types'
+import type { PricePlan } from '@/types/price-plan.types'
 import StatusBadge from '@/components/common/StatusBadge'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { stripShopifyDomain, formatRelativeTime } from '@/lib/utils'
-
+import { assignPricePlan } from '@/lib/actions/store'
+import { useActivePricePlans } from '@/lib/queries/usePricePlans'
 import StoreCatalogCell from '@/components/stores/StoreCatalogCell'
 
 const PLAN_OPTIONS = ['All', 'free', 'starter', 'growth', 'pro'] as const
@@ -23,6 +27,9 @@ export default function StoreTable({ stores }: StoreTableProps) {
   const [planFilter, setPlanFilter] = useState<string>('All')
   const [statusFilter, setStatusFilter] = useState<string>('All')
   const [search, setSearch] = useState('')
+
+  // Fetch active price plans once for the entire table
+  const { data: activePricePlans = [] } = useActivePricePlans()
 
   const filtered = useMemo(() => {
     return stores.filter((s) => {
@@ -122,10 +129,11 @@ export default function StoreTable({ stores }: StoreTableProps) {
                       label={store.subscription_plan_name ?? 'Free'}
                     />
                   </td>
-                  <td className="px-4 py-3 text-sm">
-                    {store.price_plan_name ?? (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                  <td className="px-4 py-3">
+                    <StorePricePlanCell
+                      store={store}
+                      activePricePlans={activePricePlans}
+                    />
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={store.active ? 'active' : 'cancelled'} label={store.active ? 'Active' : 'Inactive'} />
@@ -162,5 +170,96 @@ export default function StoreTable({ stores }: StoreTableProps) {
         )}
       </div>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Inline price plan cell with dropdown + confirm dialog
+// ---------------------------------------------------------------------------
+
+interface StorePricePlanCellProps {
+  store: Store
+  activePricePlans: PricePlan[]
+}
+
+function StorePricePlanCell({ store, activePricePlans }: StorePricePlanCellProps) {
+  const [editing, setEditing] = useState(false)
+  const [selectedId, setSelectedId] = useState<number>(store.price_plan_id ?? 0)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { if (activePricePlans.length > 0) setEditing(true) }}
+        title="Click to change price plan"
+        className="text-left text-sm hover:underline hover:text-primary transition-colors"
+      >
+        {store.price_plan_name ?? <span className="text-muted-foreground">—</span>}
+      </button>
+    )
+  }
+
+  function handleSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedId(Number(e.target.value))
+  }
+
+  function handleConfirm() {
+    startTransition(async () => {
+      try {
+        await assignPricePlan(store.id, selectedId)
+        const plan = activePricePlans.find((p) => p.id === selectedId)
+        toast.success(`Price plan → "${plan?.name ?? 'selected plan'}". Shopify reprice triggered.`)
+      } catch (err) {
+        const is409 = (err as { status?: number })?.status === 409
+        toast.error(is409 ? 'That plan is no longer active.' : 'Failed to assign price plan.')
+      } finally {
+        setConfirmOpen(false)
+        setEditing(false)
+      }
+    })
+  }
+
+  const selectedPlan = activePricePlans.find((p) => p.id === selectedId)
+
+  return (
+    <>
+      <div className="flex items-center gap-1.5">
+        <select
+          value={selectedId}
+          onChange={handleSelect}
+          autoFocus
+          className="rounded border border-input bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+        >
+          <option value={0} disabled>Select…</option>
+          {activePricePlans.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        <button
+          onClick={() => selectedId && setConfirmOpen(true)}
+          disabled={!selectedId}
+          className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          Set
+        </button>
+        <button
+          onClick={() => setEditing(false)}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          ✕
+        </button>
+      </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        title="Assign AOA Price Plan?"
+        description={`Assign "${selectedPlan?.name ?? ''}" to ${store.shop_domain}? This will trigger a full Shopify price reprice.`}
+        confirmText="Assign & Reprice"
+        loading={isPending}
+        onConfirm={handleConfirm}
+        onClose={() => { setConfirmOpen(false); setEditing(false) }}
+      />
+    </>
   )
 }

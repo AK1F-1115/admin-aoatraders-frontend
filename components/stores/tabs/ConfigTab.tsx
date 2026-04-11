@@ -7,7 +7,9 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 import type { Store } from '@/types/store.types'
 import type { BillingPlan } from '@/types/billing.types'
-import { updateStore, assignPlan } from '@/lib/actions/store'
+import { updateStore, assignPlan, assignPricePlan } from '@/lib/actions/store'
+import { useActivePricePlans } from '@/lib/queries/usePricePlans'
+import ConfirmModal from '@/components/common/ConfirmModal'
 
 // ── Zod schema ──────────────────────────────────────────────────────────────
 
@@ -62,6 +64,12 @@ export default function ConfigTab({ store, plans }: ConfigTabProps) {
   const [isPending, startTransition] = useTransition()
   const [selectedPlanId, setSelectedPlanId] = useState<number>(store.subscription_plan_id ?? 0)
   const [isPlanPending, startPlanTransition] = useTransition()
+
+  // AOA price plan assignment
+  const { data: activePricePlans = [] } = useActivePricePlans()
+  const [selectedPricePlanId, setSelectedPricePlanId] = useState<number>(store.price_plan_id ?? 0)
+  const [confirmPricePlanOpen, setConfirmPricePlanOpen] = useState(false)
+  const [isPricePlanPending, startPricePlanTransition] = useTransition()
 
   // Safe typed accessors for the untyped sync_config record
   const sc = store.sync_config
@@ -137,6 +145,22 @@ export default function ConfigTab({ store, plans }: ConfigTabProps) {
         toast.success(`Plan updated to ${plan?.name ?? 'selected plan'}`)
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Failed to assign plan')
+      }
+    })
+  }
+
+  function handleConfirmAssignPricePlan() {
+    if (!selectedPricePlanId) return
+    startPricePlanTransition(async () => {
+      try {
+        await assignPricePlan(store.id, selectedPricePlanId)
+        const plan = activePricePlans.find((p) => p.id === selectedPricePlanId)
+        toast.success(`AOA Price Plan set to "${plan?.name ?? 'selected plan'}". Shopify reprice triggered.`)
+        setConfirmPricePlanOpen(false)
+      } catch (err) {
+        const is409 = (err as { status?: number })?.status === 409
+        toast.error(is409 ? 'That plan is no longer active.' : (err instanceof Error ? err.message : 'Failed to assign price plan'))
+        setConfirmPricePlanOpen(false)
       }
     })
   }
@@ -289,6 +313,50 @@ export default function ConfigTab({ store, plans }: ConfigTabProps) {
           </button>
         </div>
       </section>
+
+      {/* AOA Price Plan assignment */}
+      <section className="rounded-xl border bg-card p-6 shadow-sm">
+        <h3 className="text-sm font-semibold mb-1">AOA Price Plan</h3>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Controls the AOA markup tier for all products on this store.
+          {store.price_plan_name && (
+            <> Current: <span className="font-medium text-foreground">{store.price_plan_name}</span>.</>
+          )}
+          &nbsp;Assigning a new plan triggers a full Shopify price reprice.
+        </p>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedPricePlanId}
+            onChange={(e) => setSelectedPricePlanId(Number(e.target.value))}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value={0} disabled>Select a price plan…</option>
+            {activePricePlans.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            disabled={!selectedPricePlanId || isPricePlanPending}
+            onClick={() => setConfirmPricePlanOpen(true)}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+          >
+            Assign Price Plan
+          </button>
+        </div>
+      </section>
+
+      <ConfirmModal
+        open={confirmPricePlanOpen}
+        title="Assign AOA Price Plan?"
+        description={`Assign "${activePricePlans.find((p) => p.id === selectedPricePlanId)?.name ?? ''}" to ${store.shop_domain}? This will trigger a full Shopify price reprice across all products.`}
+        confirmText="Assign & Reprice"
+        loading={isPricePlanPending}
+        onConfirm={handleConfirmAssignPricePlan}
+        onClose={() => setConfirmPricePlanOpen(false)}
+      />
     </div>
   )
 }
