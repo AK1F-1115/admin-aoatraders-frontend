@@ -12,10 +12,14 @@ import type { Order } from '@/types/order.types'
 const PER_PAGE = 50
 
 function exportCsv(orders: Order[]) {
-  const headers = ['Order #', 'Customer', 'Amount', 'AOA Cost', 'Status', 'Created']
+  const headers = ['Order #', 'Store', 'Customer', 'Product', 'AOA SKU', 'Supplier SKU', 'Amount', 'AOA Cost', 'Status', 'Created']
   const rows = orders.map((o) => [
     o.shopify_order_number ?? '',
+    o.store_name ?? '',
     o.customer_name ?? '',
+    o.first_item_product_name ?? '',
+    o.first_item_aoa_sku ?? '',
+    o.first_item_supplier_sku ?? '',
     o.subtotal_price ?? '',
     o.aoa_total_cost ?? '',
     o.status,
@@ -118,7 +122,7 @@ export default function OrderTable({ orders, isLoading, page, total, onPage }: O
                   className="h-4 w-4"
                 />
               </th>
-              {['Order #', 'Customer', 'Amount', 'AOA Cost', 'Status', 'Created'].map((h) => (
+              {['Order #', 'Store', 'Customer', 'Product', 'AOA SKU', 'Supplier SKU', 'Amount', 'AOA Cost', 'Status', 'Created'].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">
                   {h}
                 </th>
@@ -136,8 +140,29 @@ export default function OrderTable({ orders, isLoading, page, total, onPage }: O
                     {order.shopify_order_number ?? order.shopify_order_id ?? `#${order.id}`}
                   </Link>
                 </td>
+                <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                  {order.store_name
+                    ? order.store_name.replace('.myshopify.com', '')
+                    : <span className="opacity-40">—</span>}
+                </td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {order.customer_name ?? order.customer_email ?? '—'}
+                </td>
+                <td className="px-4 py-3 max-w-48">
+                  {order.first_item_product_name ? (
+                    <span className="block truncate text-sm" title={order.first_item_product_name}>
+                      {order.first_item_product_name}
+                      {(order.item_count ?? 0) > 1 && (
+                        <span className="ml-1 text-xs text-muted-foreground">+{(order.item_count ?? 1) - 1}</span>
+                      )}
+                    </span>
+                  ) : <span className="opacity-40">—</span>}
+                </td>
+                <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">
+                  {order.first_item_aoa_sku ?? <span className="opacity-40">—</span>}
+                </td>
+                <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">
+                  {order.first_item_supplier_sku ?? <span className="opacity-40">—</span>}
                 </td>
                 <td className="px-4 py-3 tabular-nums">
                   {order.subtotal_price ? formatMoney(parseFloat(order.subtotal_price)) : '—'}

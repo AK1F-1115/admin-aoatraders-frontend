@@ -24,6 +24,17 @@ export interface Order {
   ordered_at: string | null
   purchased_at: string | null
   created_at: string
+  // ── Fields that require backend to include in list response ─────────────
+  /** Store shop domain, e.g. "my-store.myshopify.com" */
+  store_name: string | null
+  /** First line item product display name (single-item orders) */
+  first_item_product_name: string | null
+  /** First line item AOA SKU */
+  first_item_aoa_sku: string | null
+  /** First line item Supplier SKU */
+  first_item_supplier_sku: string | null
+  /** Total number of distinct line items */
+  item_count: number | null
 }
 
 export interface ShippingAddress {
