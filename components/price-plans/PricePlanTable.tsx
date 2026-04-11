@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import type { PricePlan } from '@/types/price-plan.types'
 
 /** Format a decimal markup value as a display percentage string, e.g. 0.35 → "35.00%" */
-function fmtPct(val: number): string {
+function fmtPct(val: number | undefined | null): string {
+  if (val == null || isNaN(val as number)) return '—'
   return `${(val * 100).toFixed(2)}%`
 }
 
@@ -19,7 +20,7 @@ export default function PricePlanTable({ plans, isLoading, onEdit }: PricePlanTa
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-160 text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
               <th className="px-4 py-3">Plan Name</th>
