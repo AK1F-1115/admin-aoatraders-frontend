@@ -1,14 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useUpdateMapping } from '@/lib/queries/useMappings'
 import type { Mapping } from '@/types/mapping.types'
 
+const PAGE_SIZE = 50
+
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-AU', {
+  return new Date(iso).toLocaleString('en-AU', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   })
 }
 
@@ -73,6 +79,9 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
         {mapping.last_synced_quantity ?? <span className="text-muted-foreground">—</span>}
       </td>
       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+        {fmtDate(mapping.created_at)}
+      </td>
+      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
         {fmtDate(mapping.updated_at)}
       </td>
     </tr>
@@ -81,13 +90,54 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
 
 /**
  * MappingTable — supplier SKU → Shopify variant mapping editor.
- * Active column is an inline toggle that auto-saves via PATCH /admin/mappings/{id}.
+ *
+ * Features:
+ * - Search by SKU, variant ID, or supplier name
+ * - Filter by supplier (dropdown)
+ * - Filter by active status (All / Active / Inactive)
+ * - Pagination (50 rows per page)
+ * - Active toggle auto-saves via PATCH /admin/mappings/{id} (optimistic + revert)
  *
  * Confirmed fields: id, supplier, supplier_sku, shopify_variant_id,
  *   inventory_item_id, location_id, active, last_synced_quantity,
  *   created_at, updated_at
  */
 export default function MappingTable({ mappings }: { mappings: Mapping[] }) {
+  const [search, setSearch] = useState('')
+  const [supplierFilter, setSupplierFilter] = useState('all')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [page, setPage] = useState(0)
+
+  function resetPage() { setPage(0) }
+
+  // Unique supplier values for the dropdown
+  const suppliers = useMemo(
+    () => ['all', ...Array.from(new Set(mappings.map((m) => m.supplier))).sort()],
+    [mappings],
+  )
+
+  // Apply search + filters
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim()
+    return mappings.filter((m) => {
+      if (supplierFilter !== 'all' && m.supplier !== supplierFilter) return false
+      if (activeFilter === 'active' && !m.active) return false
+      if (activeFilter === 'inactive' && m.active) return false
+      if (q) {
+        return (
+          m.supplier_sku.toLowerCase().includes(q) ||
+          m.shopify_variant_id.toLowerCase().includes(q) ||
+          m.supplier.toLowerCase().includes(q)
+        )
+      }
+      return true
+    })
+  }, [mappings, search, supplierFilter, activeFilter])
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const clampedPage = Math.min(page, Math.max(0, totalPages - 1))
+  const paginated = filtered.slice(clampedPage * PAGE_SIZE, (clampedPage + 1) * PAGE_SIZE)
+
   if (mappings.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground text-sm">
@@ -97,29 +147,112 @@ export default function MappingTable({ mappings }: { mappings: Mapping[] }) {
   }
 
   return (
-    <div className="rounded-lg border border-border overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-160">
-          <thead className="bg-muted/50 border-b border-border">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Supplier</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">SKU</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Shopify Variant</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Location</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Active</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Last Qty</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Updated</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {mappings.map((mapping) => (
-              <MappingRow key={mapping.id} mapping={mapping} />
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-1 min-w-60">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search SKU, variant ID or supplier…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); resetPage() }}
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        {/* Supplier filter */}
+        <select
+          value={supplierFilter}
+          onChange={(e) => { setSupplierFilter(e.target.value); resetPage() }}
+          className="py-2 pl-3 pr-8 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {suppliers.map((s) => (
+            <option key={s} value={s}>
+              {s === 'all' ? 'All suppliers' : s}
+            </option>
+          ))}
+        </select>
+
+        {/* Active status filter */}
+        <div className="flex rounded-md border border-border overflow-hidden text-sm">
+          {(['all', 'active', 'inactive'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => { setActiveFilter(v); resetPage() }}
+              className={`px-3 py-2 capitalize transition-colors ${
+                activeFilter === v
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="px-4 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
-        {mappings.length.toLocaleString()} mapping{mappings.length !== 1 ? 's' : ''}
+
+      {/* Table */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-160">
+            <thead className="bg-muted/50 border-b border-border">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Supplier</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">SKU</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Shopify Variant</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Location</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Active</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Last Qty</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Created</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Updated</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground text-sm">
+                    No results match your filters.
+                  </td>
+                </tr>
+              ) : (
+                paginated.map((mapping) => (
+                  <MappingRow key={mapping.id} mapping={mapping} />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer: count + pagination */}
+        <div className="px-4 py-3 border-t border-border bg-muted/30 flex items-center justify-between gap-4 flex-wrap">
+          <span className="text-xs text-muted-foreground">
+            {filtered.length.toLocaleString()} result{filtered.length !== 1 ? 's' : ''}
+            {filtered.length !== mappings.length && ` (of ${mappings.length.toLocaleString()} total)`}
+            {totalPages > 1 && ` — page ${clampedPage + 1} of ${totalPages}`}
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={clampedPage === 0}
+                className="p-1.5 rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={clampedPage >= totalPages - 1}
+                className="p-1.5 rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

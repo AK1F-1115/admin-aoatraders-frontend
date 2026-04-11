@@ -1,10 +1,8 @@
 /**
- * /mappings — Category/Brand Mapping Editor
+ * /mappings — Supplier SKU → Shopify Variant Mapping Editor
  *
- * Server Component: fetches mapping data server-side for fast initial render.
- * MappingClient hydrates with TanStack Query for live updates.
- *
- * Field names TBD — check browser console for [useMappings] logs after first load.
+ * Server Component: fetches all mappings server-side for fast initial render.
+ * MappingClient hydrates with TanStack Query for live active-state updates.
  */
 import { redirect } from 'next/navigation'
 import { apiRequest, UnauthorizedError } from '@/lib/api'
@@ -40,7 +38,7 @@ export default async function MappingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Mappings</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Category and brand mappings used in sync filters.
+          Supplier SKU → Shopify variant mappings used in inventory sync.
         </p>
       </div>
 
