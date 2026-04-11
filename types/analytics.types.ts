@@ -1,6 +1,6 @@
 /**
  * Analytics types for the AOA Admin dashboard.
- * Matches the GET /admin/analytics/summary response contract (spec §15).
+ * Matches the GET /admin/analytics/* response contracts (spec §15).
  */
 
 export interface OrdersByStatus {
@@ -27,4 +27,38 @@ export interface AnalyticsSummary {
   orders_by_status: OrdersByStatus
   active_stores: number
   mrr_shopify_billing: number
+}
+
+export interface StoreAnalytics {
+  store_id: number
+  shop_domain: string
+  plan: string | null
+  orders_count: number
+  total_merchant_revenue: number
+  /** Always null — supplier cost not tracked yet */
+  margin: null
+  /** Always null — supplier cost not tracked yet */
+  margin_pct: null
+  active_products: number
+}
+
+export interface OrdersOverTimeSeries {
+  date: string
+  orders: number
+  revenue: number
+}
+
+export interface OrdersOverTime {
+  granularity: 'day' | 'week' | 'month'
+  series: OrdersOverTimeSeries[]
+}
+
+export interface TopProduct {
+  aoa_sku: string | null
+  title: string | null
+  supplier: string | null
+  orders_count: number
+  total_merchant_revenue: number
+  /** Always null — supplier cost not tracked yet */
+  avg_margin_pct: null
 }
