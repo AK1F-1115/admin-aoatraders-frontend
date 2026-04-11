@@ -15,12 +15,19 @@ import type { AuthExchangeResponse } from '@/types/auth.types'
  *
  * Source of truth: ADMIN_FRONTEND.md §14
  */
+
+// Prefer API_URL (server-only) — backend URL must not appear in the client bundle.
+const API_BASE =
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'https://api.aoatraders.com'
+
 export const GET = handleAuth({
   returnPathname: '/dashboard',
 
   onSuccess: async ({ accessToken }) => {
     // Exchange WorkOS access token for AOA admin JWT
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/admin/exchange`, {
+    const res = await fetch(`${API_BASE}/auth/admin/exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ workos_access_token: accessToken }),
